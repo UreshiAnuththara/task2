@@ -3,14 +3,14 @@
 @push('styles')
 <style>
     :root {
-        --surface: #111827;
-        --surface-2: #1a2234;
-        --border: #1e2d45;
-        --text: #f1f5f9;
+        --surface: #ffffff;
+        --surface-2: #f8fafc;
+        --border: #e2e8f0;
+        --text: #0f172a;
         --text-muted: #64748b;
         --accent: #2563eb;
         --accent-hover: #1d4ed8;
-        --accent-soft: rgba(37,99,235,0.12);
+        --accent-soft: rgba(37,99,235,0.08);
         --danger: #ef4444;
         --success: #22c55e;
     }
@@ -43,15 +43,15 @@
         font-family: 'Plus Jakarta Sans', sans-serif;
         cursor: pointer; transition: background 0.15s;
     }
-    .btn-secondary:hover { background: #243050; }
+    .btn-secondary:hover { background: #f1f5f9; }
 
     /* ── Flash ── */
     .flash-success {
         display: flex; align-items: center; gap: 10px;
         padding: 12px 16px;
-        background: rgba(34,197,94,0.1);
-        border: 1px solid rgba(34,197,94,0.25);
-        border-radius: 10px; color: #86efac;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 10px; color: #15803d;
         font-size: 13px; font-weight: 600; margin-bottom: 20px;
     }
 
@@ -108,10 +108,10 @@
     /* Supplier avatar in table */
     .supplier-init {
         width: 36px; height: 36px; border-radius: 50%;
-        background: var(--accent-soft); color: #60a5fa;
+        background: #eff6ff; color: #2563eb;
         display: flex; align-items: center; justify-content: center;
         font-size: 14px; font-weight: 800; flex-shrink: 0;
-        border: 1.5px solid rgba(37,99,235,0.2);
+        border: 1.5px solid #bfdbfe;
     }
 
     .supplier-name { font-weight: 700; color: var(--text); }
@@ -129,25 +129,25 @@
         display: inline-flex; align-items: center; gap: 4px;
     }
 
-    .btn-edit { background: rgba(37,99,235,0.1); color: #60a5fa; border-color: rgba(37,99,235,0.2); }
-    .btn-edit:hover { background: rgba(37,99,235,0.2); }
+    .btn-edit { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+    .btn-edit:hover { background: #dbeafe; }
 
-    .btn-delete { background: rgba(239,68,68,0.08); color: #f87171; border-color: rgba(239,68,68,0.2); }
-    .btn-delete:hover { background: rgba(239,68,68,0.15); }
+    .btn-delete { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+    .btn-delete:hover { background: #fee2e2; }
 
     /* ── Modal ── */
     .modal-backdrop {
         position: fixed; inset: 0;
-        background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+        background: rgba(15,23,42,0.5); backdrop-filter: blur(3px);
         z-index: 200; display: flex; align-items: center; justify-content: center;
         padding: 20px;
     }
 
     .modal {
-        background: #111827; border: 1px solid var(--border);
+        background: #ffffff; border: 1px solid #e2e8f0;
         border-radius: 16px; width: 100%; max-width: 500px;
         max-height: 90vh; overflow-y: auto;
-        box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.12);
     }
 
     .modal-header {
@@ -163,7 +163,7 @@
         display: flex; align-items: center; justify-content: center;
         color: var(--text-muted); transition: background 0.15s;
     }
-    .modal-close:hover { background: #243050; color: var(--text); }
+    .modal-close:hover { background: #f1f5f9; color: #0f172a; }
 
     .modal-body { padding: 22px 24px; }
 
@@ -188,7 +188,7 @@
     }
 
     .form-textarea { resize: vertical; min-height: 80px; }
-    .form-error { font-size: 12px; color: #f87171; margin-top: 5px; }
+    .form-error { font-size: 12px; color: #dc2626; margin-top: 5px; }
 
     .modal-footer {
         display: flex; justify-content: flex-end; gap: 10px;
@@ -206,7 +206,7 @@
     .delete-modal .modal-body { text-align: center; }
     .delete-title { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
     .delete-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
-    .delete-name { font-weight: 700; color: #f87171; }
+    .delete-name { font-weight: 700; color: #dc2626; }
 
     .btn-danger {
         display: inline-flex; align-items: center; gap: 6px;
@@ -386,8 +386,54 @@
         </table>
 
         @if ($suppliers->hasPages())
-            <div class="pagination-wrap">
-                {{ $suppliers->links() }}
+            <div class="pagination-wrap" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                <span style="font-size:13px;color:#64748b;">
+                    Showing {{ $suppliers->firstItem() }} to {{ $suppliers->lastItem() }} of {{ $suppliers->total() }} results
+                </span>
+                <div style="display:flex;align-items:center;gap:4px;">
+
+                    {{-- Previous --}}
+                    @if ($suppliers->onFirstPage())
+                        <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:7px;border:1px solid #e2e8f0;background:#f8fafc;color:#cbd5e1;cursor:not-allowed;">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        </span>
+                    @else
+                        <button wire:click="previousPage" wire:loading.attr="disabled"
+                            style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#374151;cursor:pointer;"
+                            onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                    @endif
+
+                    {{-- Page numbers --}}
+                    @foreach ($suppliers->getUrlRange(1, $suppliers->lastPage()) as $page => $url)
+                        @if ($page == $suppliers->currentPage())
+                            <span style="display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;border-radius:7px;border:1px solid #2563eb;background:#2563eb;color:#fff;font-size:13px;font-weight:700;font-family:'Figtree',sans-serif;">
+                                {{ $page }}
+                            </span>
+                        @else
+                            <button wire:click="gotoPage({{ $page }})" wire:loading.attr="disabled"
+                                style="display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#374151;font-size:13px;font-weight:600;font-family:'Figtree',sans-serif;cursor:pointer;"
+                                onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">
+                                {{ $page }}
+                            </button>
+                        @endif
+                    @endforeach
+
+                    {{-- Next --}}
+                    @if ($suppliers->hasMorePages())
+                        <button wire:click="nextPage" wire:loading.attr="disabled"
+                            style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#374151;cursor:pointer;"
+                            onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    @else
+                        <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:7px;border:1px solid #e2e8f0;background:#f8fafc;color:#cbd5e1;cursor:not-allowed;">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </span>
+                    @endif
+
+                </div>
             </div>
         @endif
     </div>
@@ -483,13 +529,13 @@
 
         {{-- Print Toolbar (screen only) --}}
         <div id="printToolbar"
-             style="position:fixed;top:0;left:0;right:0;height:56px;background:#1e2d45;
+             style="position:fixed;top:0;left:0;right:0;height:56px;background:#fff;
                     display:flex;align-items:center;justify-content:space-between;
-                    padding:0 24px;z-index:300;border-bottom:1px solid #2d3f5e;">
-            <span style="font-size:14px;font-weight:700;color:#f1f5f9;">Print Preview — Supplier Directory</span>
+                    padding:0 24px;z-index:300;border-bottom:1px solid #e2e8f0;">
+            <span style="font-size:14px;font-weight:700;color:#0f172a;">Print Preview — Supplier Directory</span>
             <div style="display:flex;gap:10px;">
                 <button wire:click="closePrint"
-                    style="padding:8px 16px;background:var(--surface-2);color:#94a3b8;border:1px solid #1e2d45;
+                    style="padding:8px 16px;background:#f8fafc;color:#64748b;border:1px solid #e2e8f0;
                            border-radius:8px;font-size:13px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;">
                     ✕ Close
                 </button>
@@ -503,7 +549,7 @@
 
         {{-- Scrollable Page Area --}}
         <div id="print-pages-wrapper"
-             style="padding-top:64px;background:#374151;min-height:100vh;">
+             style="padding-top:64px;background:#e2e8f0;min-height:100vh;">
 
             @php
                 $chunks     = $allSuppliers->chunk(6);
@@ -513,10 +559,10 @@
 
             @forelse ($chunks as $pageIdx => $chunk)
             <div class="print-page"
-                 style="width:210mm;min-height:277mm;padding:14mm 15mm 0;background:#fff;
+                 style="width:210mm;height:297mm;padding:14mm 15mm 0;background:#fff;
                         margin:0 auto 28px;box-shadow:0 4px 24px rgba(0,0,0,.2);
                         box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif;
-                        display:flex;flex-direction:column;">
+                        display:flex;flex-direction:column;overflow:hidden;">
 
                 <div class="print-page-body" style="flex:1;">
 
@@ -607,11 +653,12 @@
 
 {{-- ════════ JS ════════ --}}
 <script>
-    document.addEventListener('livewire:initialized', () => {
+    document.addEventListener('livewire:init', () => {
         Livewire.on('open-print-dialog', () => {
-            setTimeout(() => { window.print(); }, 300);
+            setTimeout(() => { window.print(); }, 400);
         });
     });
 </script>
+
 
 </div>

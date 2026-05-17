@@ -3,36 +3,19 @@
 use App\Livewire\SupplierManager;
 use App\Livewire\UserManager;
 use App\Livewire\ProfileSettings;
+use App\Livewire\LoginAnalytics;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Livewire\Volt\Volt;
 
-// ── Public: Auth Routes ────────────────────────────────────────────────────
-
-// Login page — plain Blade view (NOT Livewire component)
+// ── Guest Routes ───────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
-    Route::get('/login', function () {
-        return view('livewire.pages.auth.login');
-    })->name('login');
-
-    Route::post('/login', function (Request $request) {
-        $credentials = $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required',
-        ]);
-
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-            return redirect()->intended(route('suppliers.index'));
-        }
-
-        return back()->withErrors([
-            'email' => 'These credentials do not match our records.',
-        ])->onlyInput('email');
-    });
+    Volt::route('/login', 'pages.auth.login')->name('login');
+    Volt::route('/register', 'pages.auth.register')->name('register');
 });
 
-// Breeze extra routes (register, password reset, etc.) — include if exists
+// ── Extra Auth Routes ──────────────────────────────────────────────────────
 if (file_exists(__DIR__ . '/auth.php')) {
     require __DIR__ . '/auth.php';
 }
@@ -40,31 +23,21 @@ if (file_exists(__DIR__ . '/auth.php')) {
 // ── Authenticated Routes ───────────────────────────────────────────────────
 Route::middleware(['auth'])->group(function () {
 
-    // Dashboard redirect
-    Route::get('/', function () {
-        return redirect()->route('suppliers.index');
-    })->name('home');
+    Route::get('/', fn() => redirect()->route('suppliers.index'))->name('home');
+    Route::get('/dashboard', fn() => redirect()->route('suppliers.index'))->name('dashboard');
 
-    Route::get('/dashboard', function () {
-        return redirect()->route('suppliers.index');
-    })->name('dashboard');
-
-    // Supplier Management
     Route::get('/suppliers', SupplierManager::class)->name('suppliers.index');
-
-    // User Management — admin only
-    Route::get('/users', UserManager::class)
-        ->name('users.index')
-        ->middleware('can:admin-only');
-
-    // Profile Settings — any authenticated user
+    Route::get('/users', UserManager::class)->name('users.index');
     Route::get('/profile', ProfileSettings::class)->name('profile.settings');
+    Route::get('/login-analytics', LoginAnalytics::class)->name('login.analytics');
 
-    // Logout
+    // FIX: Logout returns a plain 200 (no redirect) so the fetch() in app.blade.php
+    // completes cleanly, then Livewire.navigate('/login') handles the SPA transition
+    // without a hard browser reload.
     Route::post('/logout', function (Request $request) {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login');
+        return response()->noContent(); // 204 — fetch resolves, Livewire.navigate takes over
     })->name('logout');
 });

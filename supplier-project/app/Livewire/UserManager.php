@@ -5,66 +5,67 @@ namespace App\Livewire;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Hash;
 
 class UserManager extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithPagination;
 
-    // ── UI State ──────────────────────────────────────────────────────────────
-    public bool   $showModal        = false;
-    public bool   $isEditing        = false;
-    public ?int   $editingId        = null;
-    public bool   $showDeleteModal  = false;
-    public ?int   $deletingId       = null;
-    public string $deletingUserName = '';
+    // ── UI State ──
+    public bool   $showModal       = false;
+    public bool   $isEditing       = false;
+    public ?int   $editingId       = null;
+    public bool   $showDeleteModal = false;
+    public ?int   $deletingId      = null;
+    public string $deletingName    = '';
 
-    // ── Form Fields ───────────────────────────────────────────────────────────
+    // ── Form Fields ──
     public string $search   = '';
     public string $name     = '';
     public string $email    = '';
     public string $password = '';
     public string $role     = 'user';
-    public $photo; // uploaded file
+    public string $shift    = '';   // '' = no restriction, 'day', 'night'
 
-    protected string $paginationTheme = 'tailwind';
-
-    // Default admin email — this user is protected from edit/delete
+    protected string $paginationTheme   = 'tailwind';
     protected string $defaultAdminEmail = 'ureshianuththara9@gmail.com';
 
-    // ── Validation ────────────────────────────────────────────────────────────
-    protected function rules(): array
-    {
-        $passwordRule = $this->isEditing ? 'nullable|string|min:8' : 'required|string|min:8';
+    public array $roleSuggestions = ['admin', 'Production', 'HR', 'Accounting', 'Logistics', 'Sales', 'IT'];
 
-        return [
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email,' . $this->editingId,
-            'password' => $passwordRule,
-            'role'     => 'required|in:admin,user',
-            'photo'    => 'nullable|image|max:2048',
-        ];
-    }
-
-    protected array $messages = [
-        'email.unique'    => 'This email is already registered.',
-        'password.min'    => 'Password must be at least 8 characters.',
-    ];
-
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
-    public function updatingSearch(): void
-    {
-        $this->resetPage();
-    }
-
-    // ── Guard ────────────────────────────────────────────────────────────────
+    // ── Guard ──
     public function mount(): void
     {
         abort_unless(auth()->user()?->isAdmin(), 403);
     }
 
-    // ── CRUD Modal ────────────────────────────────────────────────────────────
+    // ── Helpers ──
+    public function isDefaultAdmin(): bool
+    {
+        return auth()->user()->email === $this->defaultAdminEmail;
+    }
+
+    // ── Validation ──
+    protected function rules(): array
+    {
+        $pw = $this->isEditing ? 'nullable|string|min:6' : 'required|string|min:6';
+        return [
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email,' . $this->editingId,
+            'password' => $pw,
+            'role'     => 'required|string|max:50',
+            'shift'    => 'nullable|in:,day,night',
+        ];
+    }
+
+    protected array $messages = [
+        'email.unique' => 'This email is already registered.',
+        'password.min' => 'Password must be at least 6 characters.',
+        'shift.in'     => 'Shift must be day or night.',
+    ];
+
+    public function updatingSearch(): void { $this->resetPage(); }
+
+    // ── Modal ──
     public function openCreateModal(): void
     {
         $this->resetForm();
@@ -73,12 +74,18 @@ class UserManager extends Component
 
     public function openEditModal(int $id): void
     {
-        $user = User::findOrFail($id);
+        $u = User::findOrFail($id);
 
-        $this->editingId = $user->id;
-        $this->name      = $user->name;
-        $this->email     = $user->email;
-        $this->role      = $user->role;
+        if ($u->email === $this->defaultAdminEmail) {
+            session()->flash('error', 'The default administrator can only edit their own profile via Profile Settings.');
+            return;
+        }
+
+        $this->editingId = $u->id;
+        $this->name      = $u->name;
+        $this->email     = $u->email;
+        $this->role      = $u->role ?? 'user';
+        $this->shift     = $u->shift ?? '';
         $this->password  = '';
         $this->isEditing = true;
         $this->showModal = true;
@@ -95,120 +102,112 @@ class UserManager extends Component
     {
         $this->validate();
 
-        // Handle photo upload
-        $photoPath = null;
-        if ($this->photo) {
-            $photoPath = $this->photo->store('profile-images', 'public');
-        }
-
         if ($this->isEditing) {
-            $user = User::findOrFail($this->editingId);
+            $u = User::findOrFail($this->editingId);
 
-            // Prevent changing default admin's role
-            if ($user->email === $this->defaultAdminEmail) {
-                $this->role = 'admin';
+            $role = $u->role;
+            if ($this->isDefaultAdmin()) {
+                $role = $this->role;
+            } else {
+                if ($u->role !== 'admin') {
+                    $role = ($this->role === 'admin') ? $u->role : $this->role;
+                }
             }
+
+            // Admins don't get shift restrictions
+            $shift = ($role === 'admin') ? null : ($this->shift ?: null);
 
             $data = [
                 'name'  => $this->name,
                 'email' => $this->email,
-                'role'  => $this->role,
+                'role'  => $role,
+                'shift' => $shift,
             ];
+            if ($this->password) $data['password'] = Hash::make($this->password);
 
-            if ($this->password) {
-                $data['password'] = Hash::make($this->password);
-            }
-
-            if ($photoPath) {
-                $data['profile_image'] = $photoPath;
-            }
-
-            $user->update($data);
+            $u->update($data);
             session()->flash('success', 'User updated successfully.');
         } else {
-            $data = [
-                'name'     => $this->name,
-                'email'    => $this->email,
-                'password' => Hash::make($this->password),
-                'role'     => $this->role,
-            ];
-
-            if ($photoPath) {
-                $data['profile_image'] = $photoPath;
+            $role = $this->role;
+            if (! $this->isDefaultAdmin() && $role === 'admin') {
+                $role = 'user';
             }
 
-            User::create($data);
+            // Admins don't get shift restrictions
+            $shift = ($role === 'admin') ? null : ($this->shift ?: null);
+
+            User::create([
+                'name'              => $this->name,
+                'email'             => $this->email,
+                'password'          => Hash::make($this->password),
+                'role'              => $role,
+                'shift'             => $shift,
+                'email_verified_at' => now(),
+            ]);
             session()->flash('success', 'User created successfully.');
         }
 
         $this->closeModal();
+        $this->resetPage();
     }
 
-    // ── Delete Modal ──────────────────────────────────────────────────────────
     public function openDeleteModal(int $id): void
     {
-        $user = User::findOrFail($id);
-
-        // Prevent deleting default admin
-        if ($user->email === $this->defaultAdminEmail) {
-            session()->flash('error', 'The default administrator account cannot be deleted.');
+        $u = User::findOrFail($id);
+        if ($u->email === $this->defaultAdminEmail) {
+            session()->flash('error', 'The default administrator cannot be deleted.');
             return;
         }
-
-        $this->deletingId       = $user->id;
-        $this->deletingUserName = $user->name;
-        $this->showDeleteModal  = true;
+        $this->deletingId      = $u->id;
+        $this->deletingName    = $u->name;
+        $this->showDeleteModal = true;
     }
 
     public function closeDeleteModal(): void
     {
-        $this->showDeleteModal  = false;
-        $this->deletingId       = null;
-        $this->deletingUserName = '';
+        $this->showDeleteModal = false;
+        $this->deletingId      = null;
+        $this->deletingName    = '';
     }
 
     public function confirmDelete(): void
     {
         if ($this->deletingId) {
-            $user = User::findOrFail($this->deletingId);
-
-            if ($user->email === $this->defaultAdminEmail) {
-                session()->flash('error', 'The default administrator account cannot be deleted.');
-                $this->closeDeleteModal();
-                return;
+            $u = User::findOrFail($this->deletingId);
+            if ($u->email !== $this->defaultAdminEmail) {
+                $u->delete();
+                session()->flash('success', 'User deleted.');
             }
-
-            $user->delete();
-            session()->flash('success', 'User deleted successfully.');
             $this->closeDeleteModal();
+            $this->resetPage();
         }
     }
 
-    // ── Render ────────────────────────────────────────────────────────────────
+    // ── Render ──
     public function render()
     {
         $users = User::query()
             ->when($this->search, fn($q) =>
-                $q->where('name',  'like', '%' . $this->search . '%')
-                  ->orWhere('email', 'like', '%' . $this->search . '%')
+                $q->where('name', 'like', '%'.$this->search.'%')
+                  ->orWhere('email', 'like', '%'.$this->search.'%')
             )
-            ->latest()
-            ->paginate(10);
+            ->latest()->paginate(10);
 
         return view('livewire.user-manager', [
             'users'             => $users,
             'defaultAdminEmail' => $this->defaultAdminEmail,
+            'isDefaultAdmin'    => $this->isDefaultAdmin(),
+            'totalUsers'        => User::count(),
+            'totalAdmins'       => User::where('role', 'admin')->count(),
+            'totalOthers'       => User::where('role', '!=', 'admin')->count(),
         ])->layout('layouts.app');
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
     private function resetForm(): void
     {
-        $this->name      = '';
-        $this->email     = '';
-        $this->password  = '';
-        $this->role      = 'user';
-        $this->photo     = null;
+        $this->name = $this->email = $this->password = '';
+        $this->role  = 'user';
+        $this->shift = '';
         $this->editingId = null;
         $this->isEditing = false;
     }

@@ -9,11 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            if (! Schema::hasColumn('users', 'role')) {
-                $table->string('role')->default('user')->after('email');
-            }
-            if (! Schema::hasColumn('users', 'profile_image')) {
-                $table->string('profile_image')->nullable()->after('role');
+            if (! Schema::hasColumn('users', 'shift')) {
+                // 'day' = 08:00–18:00, 'night' = 18:00–08:00, null = no restriction (admin)
+                $table->string('shift')->nullable()->after('profile_image');
             }
         });
     }
@@ -21,7 +19,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['role', 'profile_image']);
+            if (Schema::hasColumn('users', 'shift')) {
+                $table->dropColumn('shift');
+            }
         });
     }
 };

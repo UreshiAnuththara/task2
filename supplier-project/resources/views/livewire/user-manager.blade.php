@@ -1,562 +1,237 @@
 <div>
 @push('styles')
 <style>
-    /* ── Dark Theme Variables (inherits from layout) ── */
-    :root {
-        --bg: #0d1117;
-        --surface: #111827;
-        --surface-2: #1a2234;
-        --border: #1e2d45;
-        --text: #f1f5f9;
-        --text-muted: #64748b;
-        --accent: #2563eb;
-        --accent-hover: #1d4ed8;
-        --accent-soft: rgba(37,99,235,0.12);
-        --danger: #ef4444;
-        --success: #22c55e;
-    }
-
-    .page-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-
-    .page-title { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
-    .page-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
-
-    .btn-primary {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 10px 18px;
-        background: var(--accent);
-        color: #fff;
-        border: none; border-radius: 9px;
-        font-size: 14px; font-weight: 700;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        cursor: pointer;
-        transition: background 0.15s, transform 0.1s;
-        text-decoration: none;
-    }
-    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
-
-    .btn-secondary {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 10px 18px;
-        background: var(--surface-2);
-        color: var(--text);
-        border: 1px solid var(--border); border-radius: 9px;
-        font-size: 14px; font-weight: 600;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        cursor: pointer;
-        transition: background 0.15s;
-    }
-    .btn-secondary:hover { background: #243050; }
+    /* ── Page Header ── */
+    .um-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; flex-wrap:wrap; gap:12px; }
+    .um-title  { font-size:20px; font-weight:800; color:#0f172a; }
+    .um-sub    { font-size:13px; color:#64748b; margin-top:2px; }
 
     /* ── Flash ── */
-    .flash-success {
-        display: flex; align-items: center; gap: 10px;
-        padding: 12px 16px;
-        background: rgba(34,197,94,0.1);
-        border: 1px solid rgba(34,197,94,0.25);
-        border-radius: 10px;
-        color: #86efac;
-        font-size: 13px; font-weight: 600;
-        margin-bottom: 20px;
+    .flash { display:flex; align-items:center; gap:8px; padding:11px 14px; border-radius:8px; font-size:13px; font-weight:600; margin-bottom:18px; }
+    .flash-ok  { background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; }
+    .flash-err { background:#fef2f2; border:1px solid #fecaca; color:#dc2626; }
+
+    /* ── Search + Button row ── */
+    .um-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+    .um-search  {
+        flex:1; min-width:200px;
+        padding:9px 14px 9px 36px;
+        border:1.5px solid #e2e8f0; border-radius:8px;
+        font-size:13px; color:#0f172a; background:#f8fafc;
+        font-family:'Figtree',sans-serif; outline:none;
     }
+    .um-search:focus { border-color:#2563eb; background:#fff; }
+    .search-wrap { position:relative; flex:1; min-width:200px; }
+    .search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#94a3b8; pointer-events:none; }
 
-    .flash-error {
-        display: flex; align-items: center; gap: 10px;
-        padding: 12px 16px;
-        background: rgba(239,68,68,0.1);
-        border: 1px solid rgba(239,68,68,0.25);
-        border-radius: 10px;
-        color: #fca5a5;
-        font-size: 13px; font-weight: 600;
-        margin-bottom: 20px;
-    }
-
-    /* ── Info Cards ── */
-    .info-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
-    .info-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 18px 20px;
-    }
-
-    .info-card .ic-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 6px; }
-    .info-card .ic-value { font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
-    .info-card .ic-sub   { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
-    /* ── Search ── */
-    .search-wrap {
-        position: relative;
-        max-width: 320px;
-        margin-bottom: 20px;
-    }
-
-    .search-wrap svg {
-        position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-        width: 16px; height: 16px; color: var(--text-muted);
-    }
-
-    .search-input {
-        width: 100%;
-        padding: 10px 14px 10px 38px;
-        background: var(--surface);
-        border: 1.5px solid var(--border);
-        border-radius: 9px;
-        color: var(--text);
-        font-size: 14px;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        outline: none;
-        transition: border-color 0.2s;
-    }
-
-    .search-input:focus { border-color: var(--accent); }
-    .search-input::placeholder { color: var(--text-muted); }
+    /* ── Buttons ── */
+    .btn-primary { display:inline-flex; align-items:center; gap:6px; padding:9px 16px; background:#2563eb; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; font-family:'Figtree',sans-serif; cursor:pointer; white-space:nowrap; }
+    .btn-primary:hover { background:#1d4ed8; }
+    .btn-ghost  { display:inline-flex; align-items:center; gap:6px; padding:9px 16px; background:#f1f5f9; color:#374151; border:1px solid #e2e8f0; border-radius:8px; font-size:13px; font-weight:600; font-family:'Figtree',sans-serif; cursor:pointer; }
+    .btn-ghost:hover { background:#e2e8f0; }
+    .btn-danger { display:inline-flex; align-items:center; gap:6px; padding:9px 16px; background:#ef4444; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; font-family:'Figtree',sans-serif; cursor:pointer; }
+    .btn-danger:hover { background:#dc2626; }
+    .btn-sm { padding:6px 12px; font-size:12px; }
 
     /* ── Table ── */
-    .table-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        overflow: hidden;
-    }
+    .um-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; }
+    .um-table { width:100%; border-collapse:collapse; }
+    .um-table th { padding:11px 16px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:#94a3b8; background:#f8fafc; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+    .um-table td { padding:13px 16px; border-bottom:1px solid #f1f5f9; font-size:13px; color:#374151; vertical-align:middle; }
+    .um-table tr:last-child td { border-bottom:none; }
+    .um-table tr:hover td { background:#fafafa; }
 
-    .data-table { width: 100%; border-collapse: collapse; }
+    /* ── User cell ── */
+    .user-cell { display:flex; align-items:center; gap:10px; }
+    .user-avatar { width:34px; height:34px; border-radius:50%; object-fit:cover; border:2px solid #e2e8f0; flex-shrink:0; }
+    .user-name  { font-size:13px; font-weight:700; color:#0f172a; }
+    .user-email { font-size:11px; color:#94a3b8; margin-top:1px; }
 
-    .data-table thead { background: var(--surface-2); }
-    .data-table thead th {
-        padding: 13px 16px;
-        text-align: left;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--text-muted);
-        border-bottom: 1px solid var(--border);
-    }
+    /* ── Badges ── */
+    .badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:50px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; white-space:nowrap; }
+    .badge-admin   { background:#fef3c7; color:#d97706; border:1px solid #fde68a; }
+    .badge-user    { background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; }
+    .badge-custom  { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
+    .badge-default { background:#fdf4ff; color:#9333ea; border:1px solid #e9d5ff; }
+    .badge-shift-day   { background:#fffbeb; color:#d97706; border:1px solid #fde68a; }
+    .badge-shift-night { background:#f5f3ff; color:#7c3aed; border:1px solid #ddd6fe; }
+    .badge-shift-none  { background:#f1f5f9; color:#94a3b8; border:1px solid #e2e8f0; }
 
-    .data-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
-    .data-table tbody tr:last-child { border-bottom: none; }
-    .data-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+    /* ── Actions ── */
+    .action-wrap { display:flex; align-items:center; gap:6px; }
+    .icon-btn { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:7px; border:1px solid #e2e8f0; background:#fff; cursor:pointer; color:#64748b; transition:all 0.12s; }
+    .icon-btn:hover.edit-btn   { background:#eff6ff; border-color:#bfdbfe; color:#2563eb; }
+    .icon-btn:hover.delete-btn { background:#fef2f2; border-color:#fecaca; color:#ef4444; }
 
-    .data-table td { padding: 14px 16px; font-size: 14px; color: var(--text); vertical-align: middle; }
-
-    /* ── User row ── */
-    .user-row-avatar {
-        width: 36px; height: 36px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid var(--border);
-    }
-
-    .u-name-cell { font-weight: 700; color: var(--text); }
-    .u-email-cell { font-size: 13px; color: var(--text-muted); }
-
-    .role-badge {
-        padding: 3px 10px;
-        border-radius: 50px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .role-badge.admin { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
-    .role-badge.user  { background: rgba(96,165,250,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,0.25); }
-
-    .default-badge {
-        display: inline-flex; align-items: center; gap: 4px;
-        padding: 2px 8px;
-        border-radius: 50px;
-        font-size: 10px;
-        font-weight: 700;
-        text-transform: uppercase;
-        background: rgba(34,197,94,0.1);
-        color: #86efac;
-        border: 1px solid rgba(34,197,94,0.25);
-        margin-left: 6px;
-    }
-
-    /* ── Action Buttons ── */
-    .action-btns { display: flex; gap: 6px; align-items: center; }
-
-    .btn-action {
-        padding: 6px 12px;
-        border-radius: 7px;
-        font-size: 12px;
-        font-weight: 600;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        cursor: pointer;
-        border: 1px solid transparent;
-        transition: all 0.15s;
-        display: inline-flex; align-items: center; gap: 4px;
-    }
-
-    .btn-edit {
-        background: rgba(37,99,235,0.1);
-        color: #60a5fa;
-        border-color: rgba(37,99,235,0.2);
-    }
-    .btn-edit:hover { background: rgba(37,99,235,0.2); }
-
-    .btn-delete {
-        background: rgba(239,68,68,0.08);
-        color: #f87171;
-        border-color: rgba(239,68,68,0.2);
-    }
-    .btn-delete:hover { background: rgba(239,68,68,0.15); }
-
-    .btn-locked {
-        background: var(--surface-2);
-        color: var(--text-muted);
-        border-color: var(--border);
-        cursor: not-allowed;
-        opacity: 0.5;
-    }
+    /* ── Empty state ── */
+    .um-empty { padding:48px 20px; text-align:center; color:#94a3b8; }
+    .um-empty svg { margin:0 auto 12px; display:block; }
 
     /* ── Modal ── */
-    .modal-backdrop {
-        position: fixed; inset: 0;
-        background: rgba(0,0,0,0.7);
-        backdrop-filter: blur(4px);
-        z-index: 200;
-        display: flex; align-items: center; justify-content: center;
-        padding: 20px;
-    }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(15,23,42,0.45); z-index:200; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .modal-box { background:#fff; border-radius:14px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+    .modal-hd { padding:20px 22px 14px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; }
+    .modal-title { font-size:16px; font-weight:800; color:#0f172a; }
+    .modal-close { width:30px; height:30px; border-radius:6px; border:none; background:#f1f5f9; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#64748b; }
+    .modal-close:hover { background:#e2e8f0; color:#0f172a; }
+    .modal-body { padding:20px 22px; }
+    .modal-ft { padding:14px 22px 20px; border-top:1px solid #f1f5f9; display:flex; gap:10px; justify-content:flex-end; }
 
-    .modal {
-        background: #111827;
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        width: 100%;
-        max-width: 500px;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 25px 60px rgba(0,0,0,0.6);
-    }
+    /* ── Form ── */
+    .form-group { margin-bottom:15px; }
+    .form-label { display:block; font-size:11px; font-weight:700; color:#374151; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:6px; }
+    .form-input { width:100%; padding:10px 12px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:8px; font-size:13px; color:#0f172a; font-family:'Figtree',sans-serif; outline:none; box-sizing:border-box; }
+    .form-input:focus { border-color:#2563eb; background:#fff; }
+    .form-error { font-size:11px; color:#dc2626; margin-top:4px; }
+    .form-hint  { font-size:11px; color:#94a3b8; margin-top:4px; }
 
-    .modal-header {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 22px 24px 16px;
-        border-bottom: 1px solid var(--border);
-    }
+    /* Role pill row */
+    .role-pills { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+    .role-pill { padding:5px 13px; border-radius:50px; font-size:12px; font-weight:600; border:1.5px solid #e2e8f0; background:#f8fafc; color:#374151; cursor:pointer; transition:all 0.12s; font-family:'Figtree',sans-serif; }
+    .role-pill:hover { border-color:#2563eb; color:#2563eb; background:#eff6ff; }
+    .role-pill.selected { border-color:#2563eb; color:#2563eb; background:#eff6ff; }
+    .role-pill.admin-pill.selected { border-color:#d97706; color:#d97706; background:#fef3c7; }
 
-    .modal-title { font-size: 18px; font-weight: 800; color: var(--text); }
+    /* Shift pill row */
+    .shift-pills { display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
+    .shift-pill { padding:7px 16px; border-radius:50px; font-size:12px; font-weight:600; border:1.5px solid #e2e8f0; background:#f8fafc; color:#374151; cursor:pointer; transition:all 0.12s; font-family:'Figtree',sans-serif; }
+    .shift-pill:hover { border-color:#2563eb; color:#2563eb; background:#eff6ff; }
+    .shift-pill.selected-none  { border-color:#94a3b8; color:#64748b; background:#f1f5f9; }
+    .shift-pill.selected-day   { border-color:#d97706; color:#d97706; background:#fffbeb; }
+    .shift-pill.selected-night { border-color:#7c3aed; color:#7c3aed; background:#f5f3ff; }
 
-    .modal-close {
-        width: 32px; height: 32px;
-        border-radius: 8px;
-        background: var(--surface-2);
-        border: none; cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        color: var(--text-muted);
-        transition: background 0.15s;
-    }
-    .modal-close:hover { background: #243050; color: var(--text); }
-
-    .modal-body { padding: 22px 24px; }
-
-    .form-group { margin-bottom: 18px; }
-
-    .form-label {
-        display: block;
-        font-size: 12px; font-weight: 700;
-        color: var(--text-muted);
-        text-transform: uppercase; letter-spacing: 0.8px;
-        margin-bottom: 7px;
-    }
-
-    .form-input, .form-select {
-        width: 100%;
-        padding: 12px 14px;
-        background: var(--surface-2);
-        border: 1.5px solid var(--border);
-        border-radius: 9px;
-        color: var(--text);
-        font-size: 14px;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        outline: none;
-        transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .form-input:focus, .form-select:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
-    }
-
-    .form-select option { background: #1a2234; }
-    .form-error { font-size: 12px; color: #f87171; margin-top: 5px; }
-    .form-hint  { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
-
-    .modal-footer {
-        display: flex; justify-content: flex-end; gap: 10px;
-        padding: 16px 24px 22px;
-        border-top: 1px solid var(--border);
-    }
-
-    /* ── Delete Modal ── */
-    .delete-modal { max-width: 420px; }
-
-    .delete-icon {
-        width: 56px; height: 56px;
-        border-radius: 50%;
-        background: rgba(239,68,68,0.12);
-        border: 2px solid rgba(239,68,68,0.2);
-        display: flex; align-items: center; justify-content: center;
-        margin: 0 auto 16px;
-    }
-
-    .delete-modal .modal-body { text-align: center; padding-bottom: 8px; }
-    .delete-title { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
-    .delete-desc  { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
-    .delete-name  { font-weight: 700; color: #f87171; }
-
-    .btn-danger {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 10px 20px;
-        background: var(--danger);
-        color: #fff;
-        border: none; border-radius: 9px;
-        font-size: 14px; font-weight: 700;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        cursor: pointer;
-        transition: background 0.15s;
-    }
-    .btn-danger:hover { background: #dc2626; }
-
-    /* ── Roles Info Section ── */
-    .roles-info-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 20px 24px;
-        margin-bottom: 24px;
-    }
-
-    .roles-info-title {
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--text);
-        margin-bottom: 14px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .role-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 14px;
-        padding: 12px 0;
-        border-bottom: 1px solid var(--border);
-    }
-    .role-item:last-child { border-bottom: none; padding-bottom: 0; }
-
-    .role-icon {
-        width: 38px; height: 38px;
-        border-radius: 9px;
-        display: flex; align-items: center; justify-content: center;
-        flex-shrink: 0;
-        font-size: 18px;
-    }
-
-    .role-icon.admin { background: rgba(245,158,11,0.1); }
-    .role-icon.user  { background: rgba(96,165,250,0.1); }
-
-    .role-item-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
-    .role-item-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+    /* Info notice */
+    .notice-info { display:flex; align-items:center; gap:8px; padding:10px 14px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:12px; color:#2563eb; margin-top:4px; }
+    .notice-warn { display:flex; align-items:center; gap:8px; padding:10px 14px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; font-size:12px; color:#d97706; margin-top:4px; }
 
     /* ── Pagination ── */
-    .pagination-wrap { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .pag-wrap { padding:14px 16px; border-top:1px solid #f1f5f9; }
 
-    /* ── Empty State ── */
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--text-muted);
-    }
-
-    .empty-state svg { width: 48px; height: 48px; margin: 0 auto 16px; opacity: 0.3; }
-    .empty-state p { font-size: 15px; font-weight: 600; }
-
-    /* ── Responsive ── */
-    @media (max-width: 768px) {
-        .info-row { grid-template-columns: repeat(2, 1fr); }
-        .data-table td:nth-child(3),
-        .data-table th:nth-child(3) { display: none; }
-    }
+    /* Delete modal */
+    .del-modal-box { background:#fff; border-radius:14px; width:100%; max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,0.2); padding:28px 26px; text-align:center; }
+    .del-icon { width:52px; height:52px; background:#fef2f2; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
+    .del-title { font-size:16px; font-weight:800; color:#0f172a; margin-bottom:8px; }
+    .del-body  { font-size:13px; color:#64748b; margin-bottom:22px; line-height:1.5; }
+    .del-ft    { display:flex; gap:10px; justify-content:center; }
 </style>
 @endpush
 
-{{-- ═══ Page Header ═══ --}}
-<div class="page-header">
-    <div>
-        <div class="page-title">System Users</div>
-        <div class="page-subtitle">Manage user accounts and access roles</div>
-    </div>
-    <button wire:click="openCreateModal" class="btn-primary">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-        </svg>
-        Add User
-    </button>
-</div>
+<div>
 
-{{-- ═══ Flash Messages ═══ --}}
-@if (session()->has('success'))
-    <div class="flash-success">
-        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-        </svg>
+{{-- Flash messages --}}
+@if(session('success'))
+    <div class="flash flash-ok">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
         {{ session('success') }}
     </div>
 @endif
-
-@if (session()->has('error'))
-    <div class="flash-error">
-        <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-        </svg>
+@if(session('error'))
+    <div class="flash flash-err">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         {{ session('error') }}
     </div>
 @endif
 
-{{-- ═══ Info Cards ═══ --}}
-<div class="info-row">
-    <div class="info-card">
-        <div class="ic-label">Total Users</div>
-        <div class="ic-value">{{ \App\Models\User::count() }}</div>
-        <div class="ic-sub">All accounts</div>
+{{-- Header --}}
+<div class="um-header">
+    <div>
+        <div class="um-title">User Management</div>
+        <div class="um-sub">Manage system users and their roles</div>
     </div>
-    <div class="info-card">
-        <div class="ic-label">Administrators</div>
-        <div class="ic-value">{{ \App\Models\User::where('role','admin')->count() }}</div>
-        <div class="ic-sub">Admin role</div>
+    <button class="btn-primary" wire:click="openCreateModal">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Add User
+    </button>
+</div>
+
+{{-- Stats --}}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px;">
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;">
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:4px;">Total Users</div>
+        <div style="font-size:28px;font-weight:800;color:#0f172a;letter-spacing:-1px;">{{ $totalUsers }}</div>
     </div>
-    <div class="info-card">
-        <div class="ic-label">Regular Users</div>
-        <div class="ic-value">{{ \App\Models\User::where('role','user')->count() }}</div>
-        <div class="ic-sub">User role</div>
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;">
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:4px;">Admins</div>
+        <div style="font-size:28px;font-weight:800;color:#0f172a;letter-spacing:-1px;">{{ $totalAdmins }}</div>
+    </div>
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;">
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:4px;">Other Roles</div>
+        <div style="font-size:28px;font-weight:800;color:#0f172a;letter-spacing:-1px;">{{ $totalOthers }}</div>
     </div>
 </div>
 
-{{-- ═══ Roles Info ═══ --}}
-<div class="roles-info-card">
-    <div class="roles-info-title">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        System Roles
-    </div>
-
-    <div class="role-item">
-        <div class="role-icon admin">⭐</div>
-        <div>
-            <div class="role-item-name">Administrator <span class="role-badge admin">Admin</span></div>
-            <div class="role-item-desc">Full access to all features including User Management. Can add, edit, and delete any user. Can modify supplier records. The default administrator account is protected and cannot be deleted.</div>
-        </div>
-    </div>
-
-    <div class="role-item">
-        <div class="role-icon user">👤</div>
-        <div>
-            <div class="role-item-name">Regular User <span class="role-badge user">User</span></div>
-            <div class="role-item-desc">Access to Supplier Management only. Can view, add, edit, and print suppliers. Can update their own profile and change their password. Cannot access User Management or delete other accounts.</div>
-        </div>
+{{-- Toolbar --}}
+<div class="um-toolbar">
+    <div class="search-wrap">
+        <svg class="search-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+        <input wire:model.live.debounce.300ms="search" class="um-search" type="text" placeholder="Search users by name or email…">
     </div>
 </div>
 
-{{-- ═══ Search ═══ --}}
-<div class="search-wrap">
-    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-    </svg>
-    <input wire:model.live.debounce.300ms="search"
-           class="search-input"
-           type="text"
-           placeholder="Search users by name or email…">
-</div>
-
-{{-- ═══ Users Table ═══ --}}
-<div class="table-card">
-    <table class="data-table">
+{{-- Table --}}
+<div class="um-card">
+    <table class="um-table">
         <thead>
             <tr>
                 <th>User</th>
-                <th>Email</th>
                 <th>Role</th>
+                <th>Shift</th>
                 <th>Joined</th>
                 <th style="text-align:right;">Actions</th>
             </tr>
         </thead>
         <tbody>
-            @forelse ($users as $user)
+            @forelse($users as $user)
             <tr>
-                {{-- Avatar + Name --}}
                 <td>
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <img src="{{ $user->profileImageUrl() }}"
-                             alt="{{ $user->name }}"
-                             class="user-row-avatar">
+                    <div class="user-cell">
+                        <img src="{{ $user->profileImageUrl() }}" alt="" class="user-avatar">
                         <div>
-                            <div class="u-name-cell">
+                            <div class="user-name">
                                 {{ $user->name }}
                                 @if($user->email === $defaultAdminEmail)
-                                    <span class="default-badge">✓ Default</span>
+                                    <span style="font-size:10px;color:#9333ea;font-weight:700;"> (Default Admin)</span>
                                 @endif
                             </div>
+                            <div class="user-email">{{ $user->email }}</div>
                         </div>
                     </div>
                 </td>
-
-                {{-- Email --}}
-                <td class="u-email-cell">{{ $user->email }}</td>
-
-                {{-- Role --}}
                 <td>
-                    <span class="role-badge {{ $user->role }}">
-                        {{ $user->role === 'admin' ? '★ Admin' : '● User' }}
-                    </span>
+                    @if($user->email === $defaultAdminEmail)
+                        <span class="badge badge-default">★ Default Admin</span>
+                    @elseif($user->role === 'admin')
+                        <span class="badge badge-admin">Admin</span>
+                    @elseif($user->role === 'user' || !$user->role)
+                        <span class="badge badge-user">User</span>
+                    @else
+                        <span class="badge badge-custom">{{ $user->role }}</span>
+                    @endif
                 </td>
-
-                {{-- Joined --}}
-                <td style="font-size:13px;color:var(--text-muted);">
-                    {{ $user->created_at->format('d M Y') }}
-                </td>
-
-                {{-- Actions --}}
                 <td>
-                    <div class="action-btns" style="justify-content:flex-end;">
-                        <button wire:click="openEditModal({{ $user->id }})" class="btn-action btn-edit">
-                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                            </svg>
-                            Edit
+                    @if($user->role === 'admin')
+                        <span class="badge badge-shift-none">Unrestricted</span>
+                    @elseif($user->shift === 'day')
+                        <span class="badge badge-shift-day">☀ Day</span>
+                    @elseif($user->shift === 'night')
+                        <span class="badge badge-shift-night">🌙 Night</span>
+                    @else
+                        <span class="badge badge-shift-none">No Restriction</span>
+                    @endif
+                </td>
+                <td style="color:#94a3b8;">{{ $user->created_at->format('d M Y') }}</td>
+                <td>
+                    <div class="action-wrap" style="justify-content:flex-end;">
+                        @if($user->email !== $defaultAdminEmail)
+                        <button class="icon-btn edit-btn" wire:click="openEditModal({{ $user->id }})" title="Edit">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         </button>
+                        @endif
 
                         @if($user->email !== $defaultAdminEmail)
-                            <button wire:click="openDeleteModal({{ $user->id }})" class="btn-action btn-delete">
-                                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                </svg>
-                                Delete
-                            </button>
-                        @else
-                            <span class="btn-action btn-locked">
-                                🔒 Protected
-                            </span>
+                        <button class="icon-btn delete-btn" wire:click="openDeleteModal({{ $user->id }})" title="Delete">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
                         @endif
                     </div>
                 </td>
@@ -564,11 +239,9 @@
             @empty
             <tr>
                 <td colspan="5">
-                    <div class="empty-state">
-                        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        <p>No users found</p>
+                    <div class="um-empty">
+                        <svg width="40" height="40" fill="none" stroke="#cbd5e1" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        No users found
                     </div>
                 </td>
             </tr>
@@ -576,30 +249,62 @@
         </tbody>
     </table>
 
-    {{-- Pagination --}}
-    @if ($users->hasPages())
-        <div class="pagination-wrap">
-            {{ $users->links() }}
+    @if($users->hasPages())
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:14px 16px;border-top:1px solid #f1f5f9;">
+        <span style="font-size:13px;color:#64748b;">
+            Showing {{ $users->firstItem() }} to {{ $users->lastItem() }} of {{ $users->total() }} results
+        </span>
+        <div style="display:flex;align-items:center;gap:4px;">
+
+            @if($users->onFirstPage())
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:7px;border:1px solid #e2e8f0;background:#f8fafc;color:#cbd5e1;cursor:not-allowed;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </span>
+            @else
+                <button wire:click="previousPage" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#374151;cursor:pointer;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+            @endif
+
+            @foreach($users->getUrlRange(1, $users->lastPage()) as $page => $url)
+                @if($page == $users->currentPage())
+                    <span style="display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;border-radius:7px;border:1px solid #2563eb;background:#2563eb;color:#fff;font-size:13px;font-weight:700;font-family:'Figtree',sans-serif;">
+                        {{ $page }}
+                    </span>
+                @else
+                    <button wire:click="gotoPage({{ $page }})" style="display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#374151;font-size:13px;font-weight:600;font-family:'Figtree',sans-serif;cursor:pointer;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">
+                        {{ $page }}
+                    </button>
+                @endif
+            @endforeach
+
+            @if($users->hasMorePages())
+                <button wire:click="nextPage" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;color:#374151;cursor:pointer;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </button>
+            @else
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:7px;border:1px solid #e2e8f0;background:#f8fafc;color:#cbd5e1;cursor:not-allowed;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </span>
+            @endif
+
         </div>
+    </div>
     @endif
 </div>
 
-
-{{-- ═══════════════════════════════════════
-     CREATE / EDIT USER MODAL
-═══════════════════════════════════════ --}}
-@if ($showModal)
+{{-- ══ Create / Edit Modal ══ --}}
+@if($showModal)
 <div class="modal-backdrop" wire:click.self="closeModal">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title">{{ $isEditing ? 'Edit User' : 'Add New User' }}</div>
+    <div class="modal-box">
+        <div class="modal-hd">
+            <span class="modal-title">{{ $isEditing ? 'Edit User' : 'Add New User' }}</span>
             <button class="modal-close" wire:click="closeModal">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
 
+        <form wire:submit.prevent="save">
         <div class="modal-body">
 
             {{-- Name --}}
@@ -612,86 +317,108 @@
             {{-- Email --}}
             <div class="form-group">
                 <label class="form-label">Email Address</label>
-                <input wire:model="email" class="form-input" type="email" placeholder="user@example.com">
+                <input wire:model="email" class="form-input" type="email" placeholder="email@company.com">
                 @error('email') <div class="form-error">{{ $message }}</div> @enderror
             </div>
 
             {{-- Password --}}
             <div class="form-group">
-                <label class="form-label">Password</label>
-                <input wire:model="password" class="form-input" type="password"
-                    placeholder="{{ $isEditing ? 'Leave blank to keep current password' : 'Minimum 8 characters' }}">
+                <label class="form-label">Password {{ $isEditing ? '(leave blank to keep)' : '' }}</label>
+                <input wire:model="password" class="form-input" type="password" placeholder="{{ $isEditing ? 'Enter new password or leave blank' : 'Min. 6 characters' }}">
                 @error('password') <div class="form-error">{{ $message }}</div> @enderror
-                @if($isEditing)
-                    <div class="form-hint">Leave blank to keep the existing password.</div>
-                @endif
             </div>
 
             {{-- Role --}}
             <div class="form-group">
                 <label class="form-label">Role</label>
-                <select wire:model="role" class="form-select"
-                    @if($isEditing && $editingId)
-                        @php $editUser = \App\Models\User::find($editingId); @endphp
-                        @if($editUser && $editUser->email === $defaultAdminEmail) disabled @endif
-                    @endif
-                >
-                    <option value="user">● User — Standard access</option>
-                    <option value="admin">★ Admin — Full access</option>
-                </select>
+                <input wire:model="role" class="form-input" type="text" placeholder="e.g. HR, Accounting, IT…">
                 @error('role') <div class="form-error">{{ $message }}</div> @enderror
+
+                {{-- Role suggestion pills --}}
+                <div class="role-pills">
+                    @foreach($roleSuggestions as $suggestion)
+                        @if($suggestion === 'admin' && !$isDefaultAdmin)
+                            @continue
+                        @endif
+                        <button type="button"
+                            class="role-pill {{ $role === $suggestion ? 'selected' : '' }} {{ $suggestion === 'admin' ? 'admin-pill' : '' }}"
+                            wire:click="$set('role', '{{ $suggestion }}')">
+                            {{ $suggestion === 'admin' ? '★ Admin' : $suggestion }}
+                        </button>
+                    @endforeach
+                </div>
+
+                @if(!$isDefaultAdmin)
+                    <div class="notice-info" style="margin-top:8px;">
+                        ℹ️ Only the default administrator can assign the Admin role.
+                    </div>
+                @endif
             </div>
 
-            {{-- Profile Photo --}}
+            {{-- Shift — hidden when role is admin --}}
+            @if($role !== 'admin')
             <div class="form-group">
-                <label class="form-label">Profile Photo <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted);">(optional)</span></label>
-                <input wire:model="photo" class="form-input" type="file" accept="image/*"
-                    style="padding:8px 14px;color:var(--text-muted);">
-                @error('photo') <div class="form-error">{{ $message }}</div> @enderror
-                <div class="form-hint">JPG, PNG, or GIF — max 2MB</div>
+                <label class="form-label">Shift Restriction</label>
+                <div class="shift-pills">
+                    <button type="button"
+                        class="shift-pill {{ $shift === '' ? 'selected-none' : '' }}"
+                        wire:click="$set('shift', '')">
+                        ∞ No Restriction
+                    </button>
+                    <button type="button"
+                        class="shift-pill {{ $shift === 'day' ? 'selected-day' : '' }}"
+                        wire:click="$set('shift', 'day')">
+                        ☀ Day (8AM – 6PM)
+                    </button>
+                    <button type="button"
+                        class="shift-pill {{ $shift === 'night' ? 'selected-night' : '' }}"
+                        wire:click="$set('shift', 'night')">
+                        🌙 Night (6PM – 8AM)
+                    </button>
+                </div>
+                @error('shift') <div class="form-error">{{ $message }}</div> @enderror
+                <div class="form-hint">User can only log in during their assigned shift hours.</div>
+            </div>
+            @else
+            <div class="notice-warn">
+                🛡️ Admin users have unrestricted access — no shift limit applied.
+            </div>
+            @endif
+
+            <div class="notice-info" style="margin-top:12px;">
+                ℹ️ Users can upload their own profile photo from their <strong style="margin:0 2px;">Profile Settings</strong> page after logging in.
             </div>
 
         </div>
-
-        <div class="modal-footer">
-            <button class="btn-secondary" wire:click="closeModal">Cancel</button>
-            <button class="btn-primary" wire:click="save">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                </svg>
-                {{ $isEditing ? 'Update User' : 'Create User' }}
+        <div class="modal-ft">
+            <button type="button" class="btn-ghost" wire:click="closeModal">Cancel</button>
+            <button type="submit" class="btn-primary" wire:loading.attr="disabled">
+                <span wire:loading.remove wire:target="save">{{ $isEditing ? 'Save Changes' : 'Create User' }}</span>
+                <span wire:loading wire:target="save">Saving…</span>
             </button>
         </div>
+        </form>
+
     </div>
 </div>
 @endif
 
-
-{{-- ═══════════════════════════════════════
-     DELETE CONFIRMATION MODAL
-═══════════════════════════════════════ --}}
-@if ($showDeleteModal)
-<div class="modal-backdrop" wire:click.self="closeDeleteModal">
-    <div class="modal delete-modal">
-        <div class="modal-body">
-            <div class="delete-icon">
-                <svg width="26" height="26" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-            </div>
-            <div class="delete-title">Delete User?</div>
-            <p class="delete-desc">
-                You are about to permanently delete
-                <span class="delete-name">{{ $deletingUserName }}</span>.
-                This action cannot be undone.
-            </p>
+{{-- ══ Delete Confirm Modal ══ --}}
+@if($showDeleteModal)
+<div class="modal-backdrop">
+    <div class="del-modal-box">
+        <div class="del-icon">
+            <svg width="24" height="24" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
         </div>
-
-        <div class="modal-footer" style="justify-content:center;gap:12px;padding-top:8px;">
-            <button class="btn-secondary" wire:click="closeDeleteModal">Cancel</button>
-            <button class="btn-danger" wire:click="confirmDelete">
-                Yes, Delete
+        <div class="del-title">Delete User</div>
+        <div class="del-body">
+            Are you sure you want to delete <strong>{{ $deletingName }}</strong>?<br>This action cannot be undone.
+        </div>
+        <div class="del-ft">
+            <button class="btn-ghost" wire:click="closeDeleteModal">Cancel</button>
+            <button class="btn-danger" wire:click="confirmDelete" wire:loading.attr="disabled">
+                <span wire:loading.remove wire:target="confirmDelete">Delete</span>
+                <span wire:loading wire:target="confirmDelete">Deleting…</span>
             </button>
         </div>
     </div>
