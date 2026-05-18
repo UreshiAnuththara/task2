@@ -53,8 +53,9 @@
 
         {{-- Clear --}}
         @if($filterShift || $filterRole)
-        <button wire:click="$set('filterShift', ''); $set('filterRole', '');"
-            style="padding:8px 14px;background:#fee2e2;color:#dc2626;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
+        <button wire:click="$set('filterShift', '')" wire:click.shift="$set('filterRole', '')"
+            onclick="this.closest('[wire\\:id]').__livewire.call('$set', 'filterShift', ''); this.closest('[wire\\:id]').__livewire.call('$set', 'filterRole', '');"
+            style="padding:8px 14px;background:#fee2e2;color:#dc2626;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Figtree',sans-serif;">
             ✕ Clear Filters
         </button>
         @endif
@@ -66,11 +67,11 @@
 
         @php
         $cards = [
-            ['label'=>'Total Logins',    'value'=>$stats['total'],       'color'=>'#2563eb', 'bg'=>'#eff6ff', 'icon'=>'👤'],
-            ['label'=>'Day Shift',        'value'=>$stats['day_shift'],   'color'=>'#d97706', 'bg'=>'#fffbeb', 'icon'=>'☀️'],
-            ['label'=>'Night Shift',      'value'=>$stats['night_shift'], 'color'=>'#7c3aed', 'bg'=>'#f5f3ff', 'icon'=>'🌙'],
-            ['label'=>'Admins',           'value'=>$stats['admins'],      'color'=>'#dc2626', 'bg'=>'#fef2f2', 'icon'=>'🛡️'],
-            ['label'=>'No Restriction',   'value'=>$stats['no_shift'],    'color'=>'#059669', 'bg'=>'#ecfdf5', 'icon'=>'∞'],
+            ['label'=>'Total Logins',  'value'=>$stats['total'],       'color'=>'#2563eb', 'bg'=>'#eff6ff', 'icon'=>'👤'],
+            ['label'=>'Day Shift',      'value'=>$stats['day_shift'],   'color'=>'#d97706', 'bg'=>'#fffbeb', 'icon'=>'☀️'],
+            ['label'=>'Night Shift',    'value'=>$stats['night_shift'], 'color'=>'#7c3aed', 'bg'=>'#f5f3ff', 'icon'=>'🌙'],
+            ['label'=>'Admins',         'value'=>$stats['admins'],      'color'=>'#dc2626', 'bg'=>'#fef2f2', 'icon'=>'🛡️'],
+            ['label'=>'No Restriction', 'value'=>$stats['no_shift'],    'color'=>'#059669', 'bg'=>'#ecfdf5', 'icon'=>'∞'],
         ];
         @endphp
 
@@ -90,18 +91,14 @@
         {{-- Hourly Bar Chart --}}
         <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;">
             <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:16px;">Logins by Hour</div>
-            @php
-                $maxHourly = max(array_values($hourly) ?: [1]);
-            @endphp
+            @php $maxHourly = max(array_values($hourly) ?: [1]); @endphp
             <div style="display:flex;align-items:flex-end;gap:4px;height:100px;">
                 @for($h = 0; $h < 24; $h++)
                     @php
-                        $hStr  = str_pad($h, 2, '0', STR_PAD_LEFT);
-                        $count = $hourly[$hStr] ?? 0;
-                        $pct   = $maxHourly > 0 ? round(($count / $maxHourly) * 100) : 0;
-                        $isDayShift   = $h >= 8  && $h < 18;
-                        $isNightShift = $h >= 18 || $h < 8;
-                        $barColor = $isDayShift ? '#fbbf24' : '#818cf8';
+                        $hStr     = str_pad($h, 2, '0', STR_PAD_LEFT);
+                        $count    = $hourly[$hStr] ?? 0;
+                        $pct      = $maxHourly > 0 ? round(($count / $maxHourly) * 100) : 0;
+                        $barColor = ($h >= 8 && $h < 18) ? '#fbbf24' : '#818cf8';
                     @endphp
                     <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;" title="{{ $hStr }}:00 — {{ $count }} login(s)">
                         <div style="width:100%;background:{{ $count > 0 ? $barColor : '#f1f5f9' }};border-radius:3px 3px 0 0;height:{{ max($pct, $count > 0 ? 6 : 2) }}px;transition:height .3s;"></div>
@@ -112,8 +109,8 @@
                 @endfor
             </div>
             <div style="display:flex;gap:14px;margin-top:10px;">
-                <span style="font-size:10px;color:#64748b;display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#fbbf24;border-radius:2px;display:inline-block;"></span>Day (8–18)</span>
-                <span style="font-size:10px;color:#64748b;display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#818cf8;border-radius:2px;display:inline-block;"></span>Night (18–8)</span>
+                <span style="font-size:10px;color:#64748b;display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#fbbf24;border-radius:2px;display:inline-block;"></span>Day (8AM–6PM)</span>
+                <span style="font-size:10px;color:#64748b;display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#818cf8;border-radius:2px;display:inline-block;"></span>Night (6PM–8AM)</span>
             </div>
         </div>
 
@@ -121,21 +118,29 @@
         <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;">
             <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:16px;">Logins by Role</div>
             @php
-                $roleColors = ['admin'=>'#dc2626','Production'=>'#2563eb','HR'=>'#7c3aed','Accounting'=>'#059669','Logistics'=>'#d97706','Sales'=>'#0891b2','IT'=>'#c026d3'];
+                $roleColors = [
+                    'admin'      => '#dc2626',
+                    'Production' => '#2563eb',
+                    'HR'         => '#7c3aed',
+                    'Accounting' => '#059669',
+                    'Logistics'  => '#d97706',
+                    'Sales'      => '#0891b2',
+                    'IT'         => '#c026d3',
+                ];
                 $maxRole = max(array_values($roleBreakdown) ?: [1]);
             @endphp
             @if(empty($roleBreakdown))
                 <div style="color:#94a3b8;font-size:13px;text-align:center;padding:24px 0;">No logins recorded</div>
             @else
             <div style="display:flex;flex-direction:column;gap:10px;">
-                @foreach($roleBreakdown as $role => $cnt)
+                @foreach($roleBreakdown as $rl => $cnt)
                 @php
                     $pct   = $maxRole > 0 ? round(($cnt / $maxRole) * 100) : 0;
-                    $color = $roleColors[$role] ?? '#64748b';
+                    $color = $roleColors[$rl] ?? '#64748b';
                 @endphp
                 <div>
                     <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
-                        <span style="font-weight:600;color:#374151;">{{ ucfirst($role) }}</span>
+                        <span style="font-weight:600;color:#374151;">{{ ucfirst($rl) }}</span>
                         <span style="color:{{ $color }};font-weight:700;">{{ $cnt }}</span>
                     </div>
                     <div style="height:8px;background:#f1f5f9;border-radius:99px;overflow:hidden;">
@@ -164,17 +169,45 @@
                         <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.8px;">User</th>
                         <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.8px;">Role</th>
                         <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.8px;">Shift</th>
+                        <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.8px;">Shift Hours</th>
                         <th style="padding:10px 16px;text-align:left;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.8px;">Logged In At</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($logs as $log)
                     @php
-                        $shiftBadge = match($log->shift) {
-                            'day'   => ['label'=>'Day Shift',  'bg'=>'#fffbeb','color'=>'#d97706'],
-                            'night' => ['label'=>'Night Shift','bg'=>'#f5f3ff','color'=>'#7c3aed'],
-                            default => ['label'=>'Unrestricted','bg'=>'#f0fdf4','color'=>'#059669'],
-                        };
+                        // Determine shift display — 'day' or 'night' stored in shift column
+                        $shiftVal = $log->shift;
+                        if ($shiftVal === 'day') {
+                            $shiftBadge = ['label'=>'☀️ Day Shift',  'bg'=>'#fffbeb','color'=>'#d97706'];
+                        } elseif ($shiftVal === 'night') {
+                            $shiftBadge = ['label'=>'🌙 Night Shift','bg'=>'#f5f3ff','color'=>'#7c3aed'];
+                        } else {
+                            $shiftBadge = ['label'=>'∞ Unrestricted','bg'=>'#f0fdf4','color'=>'#059669'];
+                        }
+
+                        // Build human-readable shift hours from user record
+                        $shiftHours = '—';
+                        if ($log->user) {
+                            $u = $log->user;
+                            $st = $u->shift_type ?? $u->shift;
+                            if ($st && $st !== 'none' && $u->shift_start && $u->shift_end) {
+                                // Convert 24hr to 12hr AM/PM for display
+                                $fmtTime = function(string $t): string {
+                                    [$h, $m] = explode(':', $t);
+                                    $h = (int)$h;
+                                    $ampm = $h >= 12 ? 'PM' : 'AM';
+                                    $h12  = $h % 12 ?: 12;
+                                    return $h12 . ':' . $m . ' ' . $ampm;
+                                };
+                                $shiftHours = $fmtTime($u->shift_start) . ' – ' . $fmtTime($u->shift_end);
+                            } elseif ($st === 'day') {
+                                $shiftHours = '8:00 AM – 6:00 PM';
+                            } elseif ($st === 'night') {
+                                $shiftHours = '6:00 PM – 8:00 AM';
+                            }
+                        }
+
                         $roleColor = $roleColors[$log->role] ?? '#64748b';
                     @endphp
                     <tr style="border-bottom:1px solid #f8fafc;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
@@ -192,13 +225,16 @@
                                 {{ $shiftBadge['label'] }}
                             </span>
                         </td>
+                        <td style="padding:12px 16px;color:#374151;font-size:12px;font-weight:600;">
+                            {{ $shiftHours }}
+                        </td>
                         <td style="padding:12px 16px;color:#374151;">
                             {{ \Carbon\Carbon::parse($log->logged_in_at)->timezone('Asia/Colombo')->format('h:i A') }}
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" style="padding:40px;text-align:center;color:#94a3b8;">
+                        <td colspan="5" style="padding:40px;text-align:center;color:#94a3b8;">
                             No login records found for the selected filters.
                         </td>
                     </tr>
@@ -210,13 +246,13 @@
         {{-- Pagination --}}
         @if($totalPages > 1)
         <div style="padding:14px 20px;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;">
-            <button wire:click="prevPage" @if($currentPage <= 1) disabled @endif
-                style="padding:6px 14px;background:#f1f5f9;color:#374151;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;opacity:{{ $currentPage <= 1 ? '0.4' : '1' }};">
+            <button wire:click="prevPage" @disabled($currentPage <= 1)
+                style="padding:6px 14px;background:#f1f5f9;color:#374151;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;opacity:{{ $currentPage <= 1 ? '0.4' : '1' }};font-family:'Figtree',sans-serif;">
                 ← Prev
             </button>
             <span style="font-size:12px;color:#64748b;">Page {{ $currentPage }} of {{ $totalPages }}</span>
-            <button wire:click="nextPage" @if($currentPage >= $totalPages) disabled @endif
-                style="padding:6px 14px;background:#f1f5f9;color:#374151;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;opacity:{{ $currentPage >= $totalPages ? '0.4' : '1' }};">
+            <button wire:click="nextPage" @disabled($currentPage >= $totalPages)
+                style="padding:6px 14px;background:#f1f5f9;color:#374151;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;opacity:{{ $currentPage >= $totalPages ? '0.4' : '1' }};font-family:'Figtree',sans-serif;">
                 Next →
             </button>
         </div>

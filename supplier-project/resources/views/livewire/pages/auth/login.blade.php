@@ -9,6 +9,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Volt\Component;
 use App\Models\LoginLog;
+use Carbon\Carbon;
 
 new #[Layout('components.layouts.auth')] class extends Component {
 
@@ -39,12 +40,14 @@ new #[Layout('components.layouts.auth')] class extends Component {
             Auth::logout();
             RateLimiter::hit($this->throttleKey());
 
-            $label = $user->shift === 'day'
-                ? 'Day Shift (8:00 AM – 6:00 PM)'
-                : 'Night Shift (6:00 PM – 8:00 AM)';
+            $now         = Carbon::now('Asia/Colombo');
+            $currentTime = $now->format('h:i A');   // e.g. "02:30 PM"
+            $shiftLabel  = $user->shiftLabel();      // e.g. "Day Shift (08:00 – 18:00)"
 
             throw ValidationException::withMessages([
-                'email' => "Access denied. You are assigned to the {$label}. Please log in during your shift hours.",
+                'email' => "Access denied. You are assigned to the {$shiftLabel}. "
+                         . "Current time is {$currentTime} (Sri Lanka). "
+                         . "Please log in during your assigned shift hours.",
             ]);
         }
 
@@ -52,12 +55,11 @@ new #[Layout('components.layouts.auth')] class extends Component {
         try {
             LoginLog::create([
                 'user_id'      => $user->id,
-                'shift'        => $user->shift,
+                'shift'        => $user->effectiveShiftType(),
                 'role'         => $user->role,
                 'logged_in_at' => now(),
             ]);
         } catch (\Exception $e) {
-            // Log error but don't block login if logging fails
             \Log::error('LoginLog create failed: ' . $e->getMessage());
         }
 
@@ -110,9 +112,9 @@ new #[Layout('components.layouts.auth')] class extends Component {
         </div>
 
         @if ($errors->any())
-        <div style="padding:11px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;color:#dc2626;font-size:13px;font-weight:600;margin-bottom:18px;display:flex;gap:8px;align-items:flex-start;">
-            <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20" style="flex-shrink:0;margin-top:1px;"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
-            <span>{{ $errors->first() }}</span>
+        <div style="padding:13px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;color:#dc2626;font-size:13px;font-weight:600;margin-bottom:18px;display:flex;gap:10px;align-items:flex-start;">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" style="flex-shrink:0;margin-top:1px;"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+            <span style="line-height:1.5;">{{ $errors->first() }}</span>
         </div>
         @endif
 
@@ -165,47 +167,36 @@ new #[Layout('components.layouts.auth')] class extends Component {
     {{-- ══ RIGHT — Inbizsys Branding ══ --}}
     <div style="flex:1;position:relative;overflow:hidden;">
 
-        {{-- Background image - using asset() helper for correct path --}}
         @php $bgImage = asset('storage/Images/Inbizsys.jpg'); @endphp
 
         <div style="position:absolute;inset:0;background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#1e40af 100%);"></div>
 
         @if(file_exists(public_path('storage/Images/Inbizsys.jpg')))
-        <img
-            src="{{ $bgImage }}"
-            alt=""
-            style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"
-        >
+        <img src="{{ $bgImage }}" alt=""
+            style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
         @endif
 
         <div style="position:absolute;inset:0;background:rgba(10,20,50,0.45);"></div>
 
         <div style="position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:right;justify-content:right;">
-
-            {{-- <div style="width:80px;height:80px;background:rgba(255,255,255,0.12);border:2px solid rgba(255,255,255,0.3);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;backdrop-filter:blur(8px);">
-                <svg width="40" height="40" fill="white" viewBox="0 0 24 24">
-                    <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
-                </svg>
-            </div>
-
-            <div style="font-size:42px;font-weight:800;color:#fff;letter-spacing:-1.5px;">Inbizsys</div> --}}
-
             {{-- Shift info box --}}
             <div style="margin-top:32px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:18px 28px;backdrop-filter:blur(8px);text-align:center;max-width:300px;">
                 <div style="font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-weight:600;">Shift Schedule</div>
                 <div style="display:flex;flex-direction:column;gap:8px;">
-                    <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,0.85);">
+                    {{-- <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,0.85);">
                         <span style="width:8px;height:8px;border-radius:50%;background:#fbbf24;flex-shrink:0;"></span>
                         <span><strong>Day Shift</strong> — 8:00 AM to 6:00 PM</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,0.85);">
                         <span style="width:8px;height:8px;border-radius:50%;background:#818cf8;flex-shrink:0;"></span>
                         <span><strong>Night Shift</strong> — 6:00 PM to 8:00 AM</span>
+                    </div> --}}
+                    <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,0.85);">
+                        <span style="width:8px;height:8px;border-radius:50%;background:#34d399;flex-shrink:0;"></span>
+                        <span><strong>Custom Shift</strong> — Admin-defined hours</span>
                     </div>
-                    
                 </div>
             </div>
-
         </div>
 
         <div style="position:absolute;bottom:28px;right:28px;z-index:2;">

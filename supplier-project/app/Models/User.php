@@ -18,7 +18,10 @@ class User extends Authenticatable
         'password',
         'role',
         'profile_image',
-        'shift',
+        'shift',        // legacy column (kept for backward compat)
+        'shift_type',   // 'day' | 'night' | null
+        'shift_start',  // HH:MM  e.g. "08:00"
+        'shift_end',    // HH:MM  e.g. "18:00"
     ];
 
     protected $hidden = [
@@ -55,46 +58,82 @@ class User extends Authenticatable
 
     /**
      * Check whether this user is currently allowed to log in based on shift.
-     * Admins (role=admin) always have access regardless of shift.
-     * Users with no shift assigned can always log in.
+     *
+     * Admins   → always allowed.
+     * No shift → always allowed.
+     * shift_type = 'day'   → allowed between shift_start and shift_end (same day, start < end).
+     * shift_type = 'night' → allowed between shift_start and shift_end (crosses midnight, start > end).
      */
     public function isWithinShift(): bool
     {
-        // Admins bypass shift restriction
-        if ($this->isAdmin()) {
-            return true;
-        }
+        if ($this->isAdmin()) return true;
 
-        // No shift assigned — unrestricted
-        if (! $this->shift) {
-            return true;
-        }
+        // Support both new (shift_type) and legacy (shift) columns
+        $type = $this->shift_type ?? $this->shift;
 
-        $now = Carbon::now('Asia/Colombo'); 
-        $hour = (int) $now->format('H'); // 0-23
+        if (!$type || $type === 'none') return true;
 
-        if ($this->shift === 'day') {
-            // Day shift: 08:00 – 18:00  (hour >= 8 AND hour < 18)
-            return $hour >= 8 && $hour < 18;
-        }
+        $now     = Carbon::now('Asia/Colombo');
+        $nowMins = $now->hour * 60 + $now->minute;
 
-        if ($this->shift === 'night') {
-            // Night shift: 18:00 – 08:00  (hour >= 18 OR hour < 8)
-            return $hour >= 18 || $hour < 8;
-        }
+        $startMins = $this->timeToMinutes($this->shift_start ?? '08:00');
+        $endMins   = $this->timeToMinutes($this->shift_end   ?? '18:00');
 
-        return true;
+        return $this->isInTimeRange($nowMins, $startMins, $endMins);
     }
 
     /**
-     * Human-readable shift label.
+     * True if $nowMins is within [$startMins, $endMins).
+     * Handles overnight ranges (e.g. 18:00 → 08:00).
+     */
+    private function isInTimeRange(int $nowMins, int $startMins, int $endMins): bool
+    {
+        if ($startMins < $endMins) {
+            // Same-day range: e.g. 08:00–18:00
+            return $nowMins >= $startMins && $nowMins < $endMins;
+        } else {
+            // Overnight range: e.g. 18:00–08:00
+            return $nowMins >= $startMins || $nowMins < $endMins;
+        }
+    }
+
+    private function timeToMinutes(string $time): int
+    {
+        [$h, $m] = array_map('intval', explode(':', $time));
+        return $h * 60 + $m;
+    }
+
+    /**
+     * Human-readable shift label shown in login error messages.
      */
     public function shiftLabel(): string
     {
-        return match($this->shift) {
-            'day'   => 'Day (8 AM – 6 PM)',
-            'night' => 'Night (6 PM – 8 AM)',
+        $type  = $this->shift_type ?? $this->shift;
+        $start = $this->shift_start ?? '08:00';
+        $end   = $this->shift_end   ?? '18:00';
+
+        $fmt = fn(string $hhmm) => Carbon::createFromFormat('H:i', $hhmm)->format('g:i A');
+
+        return match ($type) {
+            'day'   => 'Day Shift ('   . $fmt($start) . ' – ' . $fmt($end) . ')',
+            'night' => 'Night Shift (' . $fmt($start) . ' – ' . $fmt($end) . ')',
             default => 'No Restriction',
         };
+    }
+
+    /**
+     * The shift type string stored in login_logs.shift.
+     * Admins and no-shift users → null.
+     * Others → 'day' or 'night'.
+     */
+    public function effectiveShiftType(): ?string
+    {
+        if ($this->isAdmin()) return null;
+
+        $type = $this->shift_type ?? $this->shift;
+
+        if (!$type || $type === 'none') return null;
+
+        return $type; // 'day' or 'night'
     }
 }
