@@ -38,6 +38,6 @@ Route::middleware(['auth'])->group(function () {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return response()->noContent(); // 204 — fetch resolves, Livewire.navigate takes over
+        return response()->noContent(); 
     })->name('logout');
 });

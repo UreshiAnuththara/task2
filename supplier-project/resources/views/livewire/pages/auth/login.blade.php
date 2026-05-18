@@ -191,7 +191,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
             <div style="font-size:42px;font-weight:800;color:#fff;letter-spacing:-1.5px;">Inbizsys</div> --}}
 
             {{-- Shift info box --}}
-            <div style="margin-top:32px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:18px 28px;backdrop-filter:blur(8px);text-align:center;max-width:280px;">
+            <div style="margin-top:32px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:18px 28px;backdrop-filter:blur(8px);text-align:center;max-width:300px;">
                 <div style="font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-weight:600;">Shift Schedule</div>
                 <div style="display:flex;flex-direction:column;gap:8px;">
                     <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,0.85);">
@@ -200,7 +200,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
                     </div>
                     <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,0.85);">
                         <span style="width:8px;height:8px;border-radius:50%;background:#818cf8;flex-shrink:0;"></span>
-                        <span><strong>Day Shift</strong> — 6:00 PM to 8:00 AM</span>
+                        <span><strong>Night Shift</strong> — 6:00 PM to 8:00 AM</span>
                     </div>
                     
                 </div>

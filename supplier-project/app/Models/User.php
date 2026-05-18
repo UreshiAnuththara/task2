@@ -70,7 +70,7 @@ class User extends Authenticatable
             return true;
         }
 
-        $now  = Carbon::now();
+        $now = Carbon::now('Asia/Colombo'); 
         $hour = (int) $now->format('H'); // 0-23
 
         if ($this->shift === 'day') {
