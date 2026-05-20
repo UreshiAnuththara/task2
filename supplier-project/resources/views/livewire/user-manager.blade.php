@@ -31,7 +31,6 @@
     .btn-ghost:hover { background:#e2e8f0; }
     .btn-danger { display:inline-flex; align-items:center; gap:6px; padding:9px 16px; background:#ef4444; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; font-family:'Figtree',sans-serif; cursor:pointer; }
     .btn-danger:hover { background:#dc2626; }
-    .btn-sm  { padding:6px 12px; font-size:12px; }
     .btn-teal { display:inline-flex; align-items:center; gap:6px; padding:9px 16px; background:#0d9488; color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:700; font-family:'Figtree',sans-serif; cursor:pointer; white-space:nowrap; }
     .btn-teal:hover { background:#0f766e; }
 
@@ -50,14 +49,14 @@
     .user-email { font-size:11px; color:#94a3b8; margin-top:1px; }
 
     /* ── Badges ── */
-    .badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:50px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; white-space:nowrap; }
-    .badge-admin        { background:#fef3c7; color:#d97706; border:1px solid #fde68a; }
-    .badge-user         { background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; }
-    .badge-custom       { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
-    .badge-default      { background:#fdf4ff; color:#9333ea; border:1px solid #e9d5ff; }
-    .badge-shift-day    { background:#fffbeb; color:#d97706; border:1px solid #fde68a; }
-    .badge-shift-night  { background:#f5f3ff; color:#7c3aed; border:1px solid #ddd6fe; }
-    .badge-shift-none   { background:#f1f5f9; color:#94a3b8; border:1px solid #e2e8f0; }
+    .badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:50px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; white-space:nowrap; }
+    .badge-admin     { background:#fef3c7; color:#d97706; border:1px solid #fde68a; }
+    .badge-user      { background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; }
+    .badge-custom    { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
+    .badge-default   { background:#fdf4ff; color:#9333ea; border:1px solid #e9d5ff; }
+    .badge-time-day  { background:#fffbeb; color:#d97706; border:1px solid #fde68a; }
+    .badge-time-night{ background:#f5f3ff; color:#7c3aed; border:1px solid #ddd6fe; }
+    .badge-time-none { background:#f1f5f9; color:#94a3b8; border:1px solid #e2e8f0; }
 
     /* ── Actions ── */
     .action-wrap { display:flex; align-items:center; gap:6px; }
@@ -85,119 +84,63 @@
     .form-input { width:100%; padding:10px 12px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:8px; font-size:13px; color:#0f172a; font-family:'Figtree',sans-serif; outline:none; box-sizing:border-box; }
     .form-input:focus { border-color:#2563eb; background:#fff; }
     .form-error { font-size:11px; color:#dc2626; margin-top:4px; }
-    .form-hint  { font-size:11px; color:#94a3b8; margin-top:4px; }
 
-    /* ── Role pill row ── */
-    .role-pills { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
-    .role-pill { padding:5px 13px; border-radius:50px; font-size:12px; font-weight:600; border:1.5px solid #e2e8f0; background:#f8fafc; color:#374151; cursor:pointer; transition:all 0.12s; font-family:'Figtree',sans-serif; }
-    .role-pill:hover { border-color:#2563eb; color:#2563eb; background:#eff6ff; }
-    .role-pill.selected { border-color:#2563eb; color:#2563eb; background:#eff6ff; }
-    .role-pill.admin-pill.selected { border-color:#d97706; color:#d97706; background:#fef3c7; }
-    .role-pill.disabled-pill { opacity:0.45; cursor:not-allowed; pointer-events:none; }
-    .role-pill-desc { font-size:10px; color:#94a3b8; margin-top:5px; font-style:italic; min-height:14px; }
+    /* ── Role Custom Dropdown ── */
+    [x-cloak] { display:none !important; }
+    .role-dd-btn {
+        width:100%; padding:10px 12px; box-sizing:border-box;
+        background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:8px;
+        font-size:13px; color:#0f172a; font-family:'Figtree',sans-serif;
+        outline:none; cursor:pointer; text-align:left;
+        display:flex; align-items:center; justify-content:space-between; gap:8px;
+        transition:border-color 0.15s, background 0.15s;
+    }
+    .role-dd-btn:hover, .role-dd-btn.open { border-color:#2563eb; background:#fff; }
+    .role-dd-btn svg { flex-shrink:0; color:#94a3b8; transition:transform 0.18s; }
+    .role-dd-list {
+        position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:600;
+        background:#fff; border:1.5px solid #e2e8f0; border-radius:10px;
+        box-shadow:0 8px 32px rgba(15,23,42,0.13);
+        max-height:117px; /* ~3 items × 39px */
+        overflow-y:auto;
+        scrollbar-width:thin; scrollbar-color:#cbd5e1 #f8fafc;
+    }
+    .role-dd-list::-webkit-scrollbar { width:5px; }
+    .role-dd-list::-webkit-scrollbar-track { background:#f8fafc; }
+    .role-dd-list::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:4px; }
+    .role-dd-item {
+        padding:9px 13px; font-size:13px; font-family:'Figtree',sans-serif;
+        color:#374151; cursor:pointer; display:flex; align-items:center;
+        gap:8px; border-bottom:1px solid #f1f5f9; transition:background 0.1s;
+    }
+    .role-dd-item:last-child { border-bottom:none; }
+    .role-dd-item:hover { background:#eff6ff; color:#2563eb; }
+    .role-dd-item.active { background:#eff6ff; color:#2563eb; font-weight:700; }
+    .role-dd-item.admin-item.active { background:#fef3c7; color:#d97706; }
+    .role-dd-item.admin-item:hover { background:#fef3c7; color:#d97706; }
+    .role-dd-name { font-weight:600; }
+    .role-dd-desc { font-size:11px; color:#94a3b8; margin-left:auto; font-style:italic; padding-left:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px; }
 
-    /* ── Shift Toggle Buttons ── */
-    .shift-toggle-wrap {
-        display:flex;
-        gap:0;
-        border:1.5px solid #e2e8f0;
-        border-radius:9px;
-        overflow:hidden;
-        margin-top:6px;
-        background:#f8fafc;
-    }
-    .shift-toggle-btn {
-        flex:1;
-        padding:10px 14px;
-        font-size:13px;
-        font-weight:700;
-        font-family:'Figtree',sans-serif;
-        border:none;
-        background:transparent;
-        color:#64748b;
-        cursor:pointer;
-        transition:all 0.15s;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        gap:7px;
-    }
-    .shift-toggle-btn:first-child { border-right:1.5px solid #e2e8f0; }
-    .shift-toggle-btn.active-unrestricted {
-        background:#f0fdf4;
-        color:#15803d;
-    }
-    .shift-toggle-btn.active-custom {
-        background:#eff6ff;
-        color:#2563eb;
-    }
-    .shift-toggle-btn:hover:not(.active-unrestricted):not(.active-custom) {
-        background:#f1f5f9;
-        color:#374151;
-    }
-
-    /* ── Time Input Group ── */
-    .shift-time-box {
-        margin-top:12px;
-        background:#f8fafc;
-        border:1.5px solid #e2e8f0;
+    /* ── Role Login Time Preview Box ── */
+    .role-time-preview {
+        margin-top:10px;
         border-radius:10px;
-        padding:16px;
+        padding:13px 15px;
+        font-size:12px;
+        font-weight:600;
         display:flex;
-        flex-direction:column;
-        gap:12px;
+        align-items:flex-start;
+        gap:10px;
+        line-height:1.5;
     }
-    .time-row {
-        display:flex;
-        align-items:center;
-        gap:12px;
-    }
-    .time-label {
-        font-size:11px;
-        font-weight:700;
-        color:#64748b;
-        text-transform:uppercase;
-        letter-spacing:.6px;
-        width:60px;
-        flex-shrink:0;
-    }
-    input[type="time"].time-input {
-        padding:9px 12px;
-        background:#fff;
-        border:1.5px solid #e2e8f0;
-        border-radius:8px;
-        font-size:14px;
-        font-weight:700;
-        color:#0f172a;
-        font-family:'Figtree',sans-serif;
-        outline:none;
-        width:150px;
-    }
-    input[type="time"].time-input:focus { border-color:#2563eb; }
+    .role-time-preview.has-time-day   { background:#fffbeb; border:1px solid #fde68a; color:#92400e; }
+    .role-time-preview.has-time-night { background:#f5f3ff; border:1px solid #ddd6fe; color:#5b21b6; }
+    .role-time-preview.no-time        { background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; }
+    .role-time-preview.admin-role     { background:#fffbeb; border:1px solid #fde68a; color:#92400e; }
 
-    /* ── Shift detect labels ── */
-    .shift-detect-day  { display:flex; align-items:center; gap:8px; padding:9px 13px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; font-size:12px; color:#d97706; font-weight:600; margin-top:10px; }
-    .shift-detect-night { display:flex; align-items:center; gap:8px; padding:9px 13px; background:#f5f3ff; border:1px solid #ddd6fe; border-radius:8px; font-size:12px; color:#7c3aed; font-weight:600; margin-top:10px; }
-    .shift-detect-warn  { display:flex; align-items:center; gap:8px; padding:9px 13px; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; font-size:12px; color:#dc2626; font-weight:600; margin-top:10px; }
-    .shift-detect-ok    { display:flex; align-items:center; gap:8px; padding:9px 13px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; font-size:12px; color:#15803d; font-weight:600; margin-top:10px; }
-
-    /* ── Info / Warn notices ── */
+    /* ── Notices ── */
     .notice-info { display:flex; align-items:center; gap:8px; padding:10px 14px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:12px; color:#2563eb; margin-top:4px; }
     .notice-warn { display:flex; align-items:center; gap:8px; padding:10px 14px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; font-size:12px; color:#d97706; margin-top:4px; }
-
-    /* ── Role Manager Panel ── */
-    .role-mgr-panel { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; margin-bottom:22px; }
-    .role-mgr-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px; }
-    .role-mgr-title { font-size:14px; font-weight:800; color:#0f172a; }
-    .role-chip { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:50px; font-size:12px; font-weight:600; border:1.5px solid #e2e8f0; background:#f8fafc; color:#374151; margin:3px; }
-    .role-chip.sys { border-color:#fde68a; background:#fef3c7; color:#d97706; }
-    .role-chip-del  { background:none; border:none; cursor:pointer; color:#94a3b8; line-height:1; padding:0 0 0 4px; font-size:14px; }
-    .role-chip-del:hover  { color:#ef4444; }
-    .role-chip-edit { background:none; border:none; cursor:pointer; color:#94a3b8; line-height:1; padding:0 0 0 2px; font-size:13px; }
-    .role-chip-edit:hover { color:#2563eb; }
-
-    /* ── Pagination ── */
-    .pag-wrap { padding:14px 16px; border-top:1px solid #f1f5f9; }
 
     /* ── Delete modal ── */
     .del-modal-box { background:#fff; border-radius:14px; width:100%; max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,0.2); padding:28px 26px; text-align:center; }
@@ -205,6 +148,9 @@
     .del-title { font-size:16px; font-weight:800; color:#0f172a; margin-bottom:8px; }
     .del-body  { font-size:13px; color:#64748b; margin-bottom:22px; line-height:1.5; }
     .del-ft    { display:flex; gap:10px; justify-content:center; }
+
+    /* ── Pagination ── */
+    .pag-wrap { padding:14px 16px; border-top:1px solid #f1f5f9; }
 </style>
 @endpush
 
@@ -228,13 +174,14 @@
 <div class="um-header">
     <div>
         <div class="um-title">User Management</div>
-        <div class="um-sub">Manage system users, roles and shift restrictions</div>
+        <div class="um-sub">Manage system users and assign roles</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn-teal" wire:click="openRoleModal">
+        {{-- <a href="{{ route('roles.index') }}" wire:navigate
+            class="btn-teal">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             Manage Roles
-        </button>
+        </a> --}}
         <button class="btn-primary" wire:click="openCreateModal">
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
             Add User
@@ -258,32 +205,6 @@
     </div>
 </div>
 
-{{-- Role Master Panel --}}
-<div class="role-mgr-panel">
-    <div class="role-mgr-header">
-        <div>
-            <div class="role-mgr-title">Available Roles</div>
-            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">
-                {{ $roles->count() }} roles &nbsp;·&nbsp;
-                <span style="color:#d97706;">★ = system role (cannot be deleted)</span>
-            </div>
-        </div>
-    </div>
-    <div style="display:flex;flex-wrap:wrap;gap:0;">
-        @foreach($roles as $r)
-        <div class="role-chip {{ $r->is_system ? 'sys' : '' }}" title="{{ $r->description }}">
-            {{ $r->name }}
-            @if(!$r->is_system)
-                <button class="role-chip-edit" wire:click="openEditRoleModal({{ $r->id }})" title="Edit">✎</button>
-                <button class="role-chip-del" wire:click="deleteRole({{ $r->id }}, '{{ $r->name }}')" title="Delete">×</button>
-            @else
-                <span style="font-size:10px;margin-left:4px;opacity:.6;">★</span>
-            @endif
-        </div>
-        @endforeach
-    </div>
-</div>
-
 {{-- Toolbar --}}
 <div class="um-toolbar">
     <div class="search-wrap">
@@ -299,7 +220,7 @@
             <tr>
                 <th>User</th>
                 <th>Role</th>
-                <th>Shift</th>
+                <th>Login Access</th>
                 <th>Joined</th>
                 <th style="text-align:right;">Actions</th>
             </tr>
@@ -307,15 +228,13 @@
         <tbody>
             @forelse($users as $user)
             @php
-                $sType   = $user->shift_type ?? $user->shift;
-                $fmtTime = fn($t) => $t ? \Carbon\Carbon::createFromFormat('H:i', $t)->format('g:i A') : null;
-                $dStart  = $fmtTime($user->shift_start);
-                $dEnd    = $fmtTime($user->shift_end);
-                $isDay   = $user->shift_start && $user->shift_end
-                           ? ($user->shift_start < $user->shift_end)
-                           : true;
+                $userRoleModel  = \App\Models\UserRole::where('name', $user->role)->first();
+                $hasTime        = $userRoleModel && $userRoleModel->hasLoginRestriction();
+                $isOvernight    = $hasTime && $userRoleModel->login_start >= $userRoleModel->login_end;
+                $fmtTime        = fn($t) => $t ? \Carbon\Carbon::createFromFormat('H:i', $t)->format('g:i A') : null;
             @endphp
             <tr>
+                {{-- User --}}
                 <td>
                     <div class="user-cell">
                         <img src="{{ $user->profileImageUrl() }}" alt="" class="user-avatar">
@@ -330,6 +249,8 @@
                         </div>
                     </div>
                 </td>
+
+                {{-- Role --}}
                 <td>
                     @if($user->email === $defaultAdminEmail)
                         <span class="badge badge-default">★ Default Admin</span>
@@ -341,28 +262,33 @@
                         <span class="badge badge-custom">{{ $user->role }}</span>
                     @endif
                 </td>
+
+                {{-- Login Access (from role) --}}
                 <td>
                     @if($user->role === 'admin')
-                        <span class="badge badge-shift-none">Unrestricted</span>
-                    @elseif(in_array($sType, ['day','night','custom']) && $dStart && $dEnd)
-                        @if($isDay)
-                            <span class="badge badge-shift-day" title="{{ $dStart }} – {{ $dEnd }}">☀ {{ $dStart }}–{{ $dEnd }}</span>
-                        @else
-                            <span class="badge badge-shift-night" title="{{ $dStart }} – {{ $dEnd }}">🌙 {{ $dStart }}–{{ $dEnd }}</span>
-                        @endif
+                        <span class="badge badge-time-none">Unrestricted</span>
+                    @elseif($hasTime && $isOvernight)
+                        <span class="badge badge-time-night">
+                            🌙 {{ $fmtTime($userRoleModel->login_start) }} – {{ $fmtTime($userRoleModel->login_end) }}
+                        </span>
+                    @elseif($hasTime)
+                        <span class="badge badge-time-day">
+                            ☀ {{ $fmtTime($userRoleModel->login_start) }} – {{ $fmtTime($userRoleModel->login_end) }}
+                        </span>
                     @else
-                        <span class="badge badge-shift-none">No Restriction</span>
+                        <span class="badge badge-time-none">No Restriction</span>
                     @endif
                 </td>
+
                 <td style="color:#94a3b8;">{{ $user->created_at->format('d M Y') }}</td>
+
+                {{-- Actions --}}
                 <td>
                     <div class="action-wrap" style="justify-content:flex-end;">
                         @if($user->email !== $defaultAdminEmail)
                         <button class="icon-btn edit-btn" wire:click="openEditModal({{ $user->id }})" title="Edit">
                             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         </button>
-                        @endif
-                        @if($user->email !== $defaultAdminEmail)
                         <button class="icon-btn delete-btn" wire:click="openDeleteModal({{ $user->id }})" title="Delete">
                             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         </button>
@@ -461,43 +387,49 @@
 
             {{-- Role --}}
             <div class="form-group">
-                <label class="form-label">Role</label>
+                <label class="form-label">Role / Department</label>
 
-                @if($isEditing)
+                @php
+                    $editingAdminSelf = $isEditing && $editingIsAdmin && !$isDefaultAdmin;
+                @endphp
+
+                @if($editingAdminSelf)
+                    {{-- Non-default-admin editing an admin user — role stays locked --}}
                     <div style="display:flex;align-items:center;gap:10px;margin-top:6px;padding:10px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;">
-                        @php
-                            $isAdminRole     = $role === 'admin';
-                            $displayRoleDesc = $roles->firstWhere('name', $role)?->description ?? '';
-                        @endphp
-                        <span class="role-pill {{ $isAdminRole ? 'admin-pill selected' : 'selected' }}" style="cursor:default;pointer-events:none;">
-                            {{ $isAdminRole ? '★ Admin' : $role }}
-                        </span>
-                        <span style="font-size:12px;color:#94a3b8;">
-                            🔒 Role cannot be changed after creation.
-                        </span>
+                        <span style="font-size:13px;font-weight:700;color:#d97706;">★ Admin</span>
+                        <span style="font-size:12px;color:#94a3b8;">🔒 Only the default administrator can change admin roles.</span>
                     </div>
-                    @if($displayRoleDesc)
-                        <div class="role-pill-desc">{{ $displayRoleDesc }}</div>
-                    @endif
                 @else
-                    <div class="role-pills">
-                        @foreach($roles as $r)
-                            @if($r->name === 'admin' && !$isDefaultAdmin)
-                                @continue
-                            @endif
-                            @php
-                                $isAdminRole = $r->name === 'admin';
-                                $isSelected  = $role === $r->name;
-                            @endphp
-                            <button type="button"
-                                class="role-pill {{ $isSelected ? 'selected' : '' }} {{ $isAdminRole ? 'admin-pill' : '' }}"
-                                wire:click="$set('role', '{{ $r->name }}')">
-                                {{ $isAdminRole ? '★ Admin' : $r->name }}
-                            </button>
-                        @endforeach
+                    {{-- Custom dropdown: scroll after 3 items, $wire.set triggers Livewire re-render for preview --}}
+                    <div style="position:relative;" x-data="{ open: false }" @click.outside="open = false">
+
+                        {{-- Trigger button --}}
+                        <button type="button"
+                            class="role-dd-btn"
+                            :class="{ 'open': open }"
+                            @click="open = !open">
+                            <span>{{ $role === 'admin' ? '★ Admin' : ($role ?: '— select a role —') }}</span>
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"
+                                :style="open ? 'transform:rotate(180deg)' : ''">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </button>
+
+                        {{-- Dropdown list: max-height shows ~3 items then scrolls --}}
+                        <div class="role-dd-list" x-show="open" x-cloak>
+                            @foreach($roles as $r)
+                                @if($r->name === 'admin' && !$isDefaultAdmin) @continue @endif
+                                <div class="role-dd-item {{ $role === $r->name ? 'active' : '' }} {{ $r->name === 'admin' ? 'admin-item' : '' }}"
+                                     wire:click="$set('role', '{{ $r->name }}')"
+                                     @click="open = false">
+                                    <span class="role-dd-name">{{ $r->name === 'admin' ? '★ Admin' : $r->name }}</span>
+                                    @if($r->description)
+                                        <span class="role-dd-desc">{{ $r->description }}</span>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
-                    @php $selectedRoleDesc = $roles->firstWhere('name', $role)?->description ?? ''; @endphp
-                    <div class="role-pill-desc">{{ $selectedRoleDesc }}</div>
                     @error('role') <div class="form-error">{{ $message }}</div> @enderror
                     @if(!$isDefaultAdmin)
                         <div class="notice-info" style="margin-top:8px;">
@@ -505,98 +437,56 @@
                         </div>
                     @endif
                 @endif
-            </div>
 
-            {{-- ══════════════════════════════════════ --}}
-            {{-- SHIFT RESTRICTION SECTION              --}}
-            {{-- ══════════════════════════════════════ --}}
-            @if($role !== 'admin')
-            <div class="form-group">
-                <label class="form-label">Shift / Login Time Restriction</label>
-
-                {{-- Toggle: 24 Hours | Custom Hours --}}
-                <div class="shift-toggle-wrap">
-                    <button type="button"
-                        class="shift-toggle-btn {{ !$shiftEnabled ? 'active-unrestricted' : '' }}"
-                        wire:click="$set('shiftEnabled', false)">
-                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
-                        24 Hours (No Restriction)
-                    </button>
-                    <button type="button"
-                        class="shift-toggle-btn {{ $shiftEnabled ? 'active-custom' : '' }}"
-                        wire:click="$set('shiftEnabled', true)">
-                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Custom Shift Hours
-                    </button>
-                </div>
-
-                {{-- Time inputs — shown only when Custom is selected --}}
-                @if($shiftEnabled)
-                <div class="shift-time-box">
-
-                    {{-- Start Time --}}
-                    <div class="time-row">
-                        <div class="time-label">Start</div>
-                        <input type="time"
-                            class="time-input"
-                            wire:model.live="shiftStart"
-                            value="{{ $shiftStart }}">
-                        @error('shiftStart') <span style="font-size:11px;color:#dc2626;">{{ $message }}</span> @enderror
+                {{-- ── LOGIN ACCESS TIME PREVIEW (always live, based on selected role) ── --}}
+                @if($role === 'admin')
+                    <div class="role-time-preview admin-role" style="margin-top:10px;">
+                        <span style="font-size:16px;">🛡️</span>
+                        <div>
+                            <strong>Admin — Unrestricted 24-Hour Access</strong><br>
+                            <span style="font-weight:400;opacity:0.8;">Admin users can log in at any time without restriction.</span>
+                        </div>
                     </div>
-
-                    {{-- End Time --}}
-                    <div class="time-row">
-                        <div class="time-label">End</div>
-                        <input type="time"
-                            class="time-input"
-                            wire:model.live="shiftEnd"
-                            value="{{ $shiftEnd }}">
-                        @error('shiftEnd') <span style="font-size:11px;color:#dc2626;">{{ $message }}</span> @enderror
+                @elseif($selectedRoleModel && $selectedRoleModel->hasLoginRestriction())
+                    @php
+                        $selStart     = $selectedRoleModel->login_start;
+                        $selEnd       = $selectedRoleModel->login_end;
+                        $selOvernight = $selStart >= $selEnd;
+                        $fmtSel       = fn($t) => \Carbon\Carbon::createFromFormat('H:i', $t)->format('g:i A');
+                    @endphp
+                    <div class="role-time-preview {{ $selOvernight ? 'has-time-night' : 'has-time-day' }}" style="margin-top:10px;">
+                        <span style="font-size:16px;">{{ $selOvernight ? '🌙' : '☀️' }}</span>
+                        <div>
+                            <strong>Login Allowed: {{ $fmtSel($selStart) }} – {{ $fmtSel($selEnd) }}
+                            {{ $selOvernight ? '(overnight)' : '' }}</strong><br>
+                            <span style="font-weight:400;opacity:0.85;">
+                                Users assigned to <strong>{{ $selectedRoleModel->name }}</strong>
+                                can only log in during these hours (Sri Lanka time).
+                                @if($selectedRoleModel->description)
+                                    <br><em>{{ $selectedRoleModel->description }}</em>
+                                @endif
+                            </span>
+                        </div>
                     </div>
-
-                </div>
-
-                {{-- Live shift direction feedback --}}
-                @if($previewSame)
-                    <div class="shift-detect-warn">
-                        ⚠️ Start time and end time cannot be the same.
-                    </div>
-                @elseif($previewIsDay === true)
-                    <div class="shift-detect-day">
-                        
-                        {{ \Carbon\Carbon::createFromFormat('H:i', $shiftStart)->format('g:i A') }}
-                        to
-                        {{ \Carbon\Carbon::createFromFormat('H:i', $shiftEnd)->format('g:i A') }}
-                        (same day). Login only allowed within these hours.
-                    </div>
-                @elseif($previewIsDay === false)
-                    <div class="shift-detect-night">
-                        
-                        {{ \Carbon\Carbon::createFromFormat('H:i', $shiftStart)->format('g:i A') }}
-                        to
-                        {{ \Carbon\Carbon::createFromFormat('H:i', $shiftEnd)->format('g:i A') }}
-                        (crosses midnight). Login only allowed within these hours.
-                    </div>
-                @endif
-
-                {{-- <div class="form-hint" style="margin-top:8px;">
-                    💡 Start &lt; End = Day shift (same day). &nbsp; Start &gt; End = Night shift (crosses midnight). All times use Sri Lanka time (Asia/Colombo).
-                </div> --}}
-
-                @else
-                    <div class="shift-detect-ok" style="margin-top:8px;">
-                        ✅ User can log in at any time — no restrictions.
+                @elseif($selectedRoleModel)
+                    <div class="role-time-preview no-time" style="margin-top:10px;">
+                        <span style="font-size:16px;">✅</span>
+                        <div>
+                            <strong>No Login Time Restriction</strong><br>
+                            <span style="font-weight:400;opacity:0.85;">
+                                Users assigned to <strong>{{ $selectedRoleModel->name }}</strong>
+                                can log in at any time.
+                                @if($selectedRoleModel->description)
+                                    <em>{{ $selectedRoleModel->description }}</em>
+                                @endif
+                            </span>
+                        </div>
                     </div>
                 @endif
 
             </div>
-            @else
-            <div class="notice-warn" style="margin-top:4px;">
-                🛡️ Admin users always have unrestricted 24-hour access — no shift limit applied.
-            </div>
-            @endif
 
-            <div class="notice-info" style="margin-top:12px;">
+            <div class="notice-info">
                 ℹ️ Users can upload their own profile photo from their <strong style="margin:0 2px;">Profile Settings</strong> page after logging in.
             </div>
 
@@ -606,46 +496,6 @@
             <button type="submit" class="btn-primary" wire:loading.attr="disabled">
                 <span wire:loading.remove wire:target="save">{{ $isEditing ? 'Save Changes' : 'Create User' }}</span>
                 <span wire:loading wire:target="save">Saving…</span>
-            </button>
-        </div>
-        </form>
-    </div>
-</div>
-@endif
-
-{{-- ══════════════════════════════════════════════════ --}}
-{{-- Role Manager Modal                                --}}
-{{-- ══════════════════════════════════════════════════ --}}
-@if($showRoleModal)
-<div class="modal-backdrop" wire:click.self="closeRoleModal">
-    <div class="modal-box" style="max-width:440px;">
-        <div class="modal-hd">
-            <span class="modal-title">{{ $isEditingRole ? 'Edit Role' : 'Add New Role' }}</span>
-            <button class="modal-close" wire:click="closeRoleModal">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <form wire:submit.prevent="saveRole">
-        <div class="modal-body">
-            <div class="form-group">
-                <label class="form-label">Role Name</label>
-                <input wire:model="newRoleName" class="form-input" type="text" placeholder="e.g. IT, Warehouse, Finance…">
-                @error('newRoleName') <div class="form-error">{{ $message }}</div> @enderror
-            </div>
-            <div class="form-group">
-                <label class="form-label">Description <span style="color:#94a3b8;font-weight:400;text-transform:none;">(optional)</span></label>
-                <input wire:model="newRoleDesc" class="form-input" type="text" placeholder="Brief description of this role…">
-                @error('newRoleDesc') <div class="form-error">{{ $message }}</div> @enderror
-            </div>
-            <div class="notice-info">
-                ℹ️ Role names are case-sensitive and will appear in user assignment pills.
-            </div>
-        </div>
-        <div class="modal-ft">
-            <button type="button" class="btn-ghost" wire:click="closeRoleModal">Cancel</button>
-            <button type="submit" class="btn-primary" wire:loading.attr="disabled">
-                <span wire:loading.remove wire:target="saveRole">{{ $isEditingRole ? 'Save Changes' : 'Create Role' }}</span>
-                <span wire:loading wire:target="saveRole">Saving…</span>
             </button>
         </div>
         </form>

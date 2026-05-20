@@ -20,25 +20,12 @@ class UserManager extends Component
     public ?int   $deletingId      = null;
     public string $deletingName    = '';
 
-    // ── Role Manager Modal ──
-    public bool   $showRoleModal  = false;
-    public string $newRoleName    = '';
-    public string $newRoleDesc    = '';
-    public ?int   $editingRoleId  = null;
-    public bool   $isEditingRole  = false;
-
     // ── Form Fields ──
     public string $search    = '';
     public string $name      = '';
     public string $email     = '';
     public string $password  = '';
     public string $role      = 'user';
-
-    // ── Shift Fields ──
-    // shiftEnabled: false = 24 hours (no restriction), true = custom time range
-    public bool   $shiftEnabled = false;
-    public string $shiftStart   = '08:00';
-    public string $shiftEnd     = '18:00';
 
     // Track if currently editing an admin user (to lock role field)
     public bool $editingIsAdmin = false;
@@ -50,7 +37,6 @@ class UserManager extends Component
     public function mount(): void
     {
         abort_unless(auth()->user()?->isAdmin(), 403);
-        $this->shiftEnabled = false;
     }
 
     // ── Helpers ──
@@ -59,25 +45,31 @@ class UserManager extends Component
         return auth()->user()->email === $this->defaultAdminEmail;
     }
 
+    /**
+     * Get the UserRole model for the currently selected role in the form.
+     * Used to show login time preview when admin selects a role.
+     */
+    public function getSelectedRoleModelProperty(): ?UserRole
+    {
+        if (!$this->role || $this->role === 'admin') return null;
+        return UserRole::where('name', $this->role)->first();
+    }
+
     // ── Validation ──
     protected function rules(): array
     {
         $pw = $this->isEditing ? 'nullable|string|min:6' : 'required|string|min:6';
         return [
-            'name'       => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email,' . $this->editingId,
-            'password'   => $pw,
-            'role'       => 'required|string|max:50',
-            'shiftStart' => 'nullable|date_format:H:i',
-            'shiftEnd'   => 'nullable|date_format:H:i',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email,' . $this->editingId,
+            'password' => $pw,
+            'role'     => 'required|string|max:50',
         ];
     }
 
     protected array $messages = [
-        'email.unique'           => 'This email is already registered.',
-        'password.min'           => 'Password must be at least 6 characters.',
-        'shiftStart.date_format' => 'Shift start must be in HH:MM format.',
-        'shiftEnd.date_format'   => 'Shift end must be in HH:MM format.',
+        'email.unique'  => 'This email is already registered.',
+        'password.min'  => 'Password must be at least 6 characters.',
     ];
 
     public function updatingSearch(): void { $this->resetPage(); }
@@ -108,29 +100,9 @@ class UserManager extends Component
         $this->email          = $u->email;
         $this->role           = $u->role ?? 'user';
         $this->editingIsAdmin = ($u->role === 'admin');
-
-        // Load shift — support both old and new column formats
-        $hasShift = !empty($u->shift_type) || !empty($u->shift);
-        if ($hasShift && ($u->shift_type !== null || $u->shift !== null)) {
-            $shiftVal = $u->shift_type ?? $u->shift;
-            if (in_array($shiftVal, ['day', 'night', 'custom'])) {
-                $this->shiftEnabled = true;
-                $this->shiftStart   = $u->shift_start ?? ($shiftVal === 'night' ? '18:00' : '08:00');
-                $this->shiftEnd     = $u->shift_end   ?? ($shiftVal === 'night' ? '08:00' : '18:00');
-            } else {
-                $this->shiftEnabled = false;
-                $this->shiftStart   = '08:00';
-                $this->shiftEnd     = '18:00';
-            }
-        } else {
-            $this->shiftEnabled = false;
-            $this->shiftStart   = '08:00';
-            $this->shiftEnd     = '18:00';
-        }
-
-        $this->password  = '';
-        $this->isEditing = true;
-        $this->showModal = true;
+        $this->password       = '';
+        $this->isEditing      = true;
+        $this->showModal      = true;
     }
 
     public function closeModal(): void
@@ -144,45 +116,30 @@ class UserManager extends Component
     {
         $this->validate();
 
-        // Validate shift times if shift is enabled
-        if ($this->shiftEnabled && $this->shiftStart === $this->shiftEnd) {
-            $this->addError('shiftEnd', 'Start time and end time cannot be the same.');
-            return;
-        }
-
         $role = $this->role;
+
+        // Non-default-admin cannot assign admin role
         if (!$this->isDefaultAdmin() && $role === 'admin') {
             $role = 'user';
         }
 
-        // Build shift data
-        if ($role === 'admin') {
-            // Admins always unrestricted
-            $shiftType = $shiftStart = $shiftEnd = $shiftLegacy = null;
-        } elseif ($this->shiftEnabled) {
-            // Determine day/night from time direction
-            $autoType    = $this->shiftStart < $this->shiftEnd ? 'day' : 'night';
-            $shiftType   = $autoType;
-            $shiftStart  = $this->shiftStart;
-            $shiftEnd    = $this->shiftEnd;
-            $shiftLegacy = $autoType;
-        } else {
-            // 24 hours — no restriction
-            $shiftType = $shiftStart = $shiftEnd = $shiftLegacy = null;
-        }
-
         if ($this->isEditing) {
-            $u    = User::findOrFail($this->editingId);
-            $role = $u->role; // Preserve original role on edit
+            $u = User::findOrFail($this->editingId);
+
+            // Non-default-admin editing an existing admin — preserve their role
+            if ($u->role === 'admin' && !$this->isDefaultAdmin()) {
+                $role = 'admin';
+            }
 
             $data = [
-                'name'        => $this->name,
-                'email'       => $this->email,
-                'role'        => $role,
-                'shift_type'  => $shiftType,
-                'shift_start' => $shiftStart,
-                'shift_end'   => $shiftEnd,
-                'shift'       => $shiftLegacy,
+                'name'  => $this->name,
+                'email' => $this->email,
+                'role'  => $role,
+                // Clear legacy shift columns — restriction is now role-based
+                'shift_type'  => null,
+                'shift_start' => null,
+                'shift_end'   => null,
+                'shift'       => null,
             ];
             if ($this->password) {
                 $data['password'] = Hash::make($this->password);
@@ -195,10 +152,10 @@ class UserManager extends Component
                 'email'             => $this->email,
                 'password'          => Hash::make($this->password),
                 'role'              => $role,
-                'shift_type'        => $shiftType,
-                'shift_start'       => $shiftStart,
-                'shift_end'         => $shiftEnd,
-                'shift'             => $shiftLegacy,
+                'shift_type'        => null,
+                'shift_start'       => null,
+                'shift_end'         => null,
+                'shift'             => null,
                 'email_verified_at' => now(),
             ]);
             session()->flash('success', 'User created successfully.');
@@ -241,76 +198,6 @@ class UserManager extends Component
         }
     }
 
-    // ── Role Manager ──
-    public function openRoleModal(): void
-    {
-        $this->newRoleName = $this->newRoleDesc = '';
-        $this->editingRoleId = null;
-        $this->isEditingRole = false;
-        $this->showRoleModal = true;
-    }
-
-    public function openEditRoleModal(int $id): void
-    {
-        $r = UserRole::findOrFail($id);
-        if ($r->is_system) {
-            session()->flash('error', 'System roles cannot be edited.');
-            return;
-        }
-        $this->editingRoleId = $r->id;
-        $this->newRoleName   = $r->name;
-        $this->newRoleDesc   = $r->description ?? '';
-        $this->isEditingRole = true;
-        $this->showRoleModal = true;
-    }
-
-    public function closeRoleModal(): void
-    {
-        $this->showRoleModal = false;
-        $this->newRoleName = $this->newRoleDesc = '';
-        $this->editingRoleId = null;
-        $this->isEditingRole = false;
-        $this->resetValidation();
-    }
-
-    public function saveRole(): void
-    {
-        $this->validate([
-            'newRoleName' => 'required|string|max:50|unique:user_roles,name,' . ($this->editingRoleId ?? 'NULL'),
-            'newRoleDesc' => 'nullable|string|max:255',
-        ], [
-            'newRoleName.required' => 'Role name is required.',
-            'newRoleName.unique'   => 'This role name already exists.',
-        ]);
-
-        if ($this->isEditingRole && $this->editingRoleId) {
-            UserRole::findOrFail($this->editingRoleId)->update([
-                'name'        => $this->newRoleName,
-                'description' => $this->newRoleDesc ?: null,
-            ]);
-            session()->flash('success', 'Role updated.');
-        } else {
-            UserRole::create([
-                'name'        => $this->newRoleName,
-                'description' => $this->newRoleDesc ?: null,
-                'is_system'   => false,
-            ]);
-            session()->flash('success', 'Role "' . $this->newRoleName . '" created.');
-        }
-        $this->closeRoleModal();
-    }
-
-    public function deleteRole(int $id): void
-    {
-        $r = UserRole::findOrFail($id);
-        if ($r->is_system) {
-            session()->flash('error', 'System roles cannot be deleted.');
-            return;
-        }
-        $r->delete();
-        session()->flash('success', 'Role deleted.');
-    }
-
     // ── Render ──
     public function render()
     {
@@ -323,36 +210,29 @@ class UserManager extends Component
 
         $roles = UserRole::orderBy('is_system', 'desc')->orderBy('name')->get();
 
-        // Shift preview for live feedback in modal
-        $previewIsDay  = $this->shiftEnabled
-            ? ($this->shiftStart < $this->shiftEnd)
+        // Selected role model for live preview in the modal
+        $selectedRoleModel = ($this->role && $this->role !== 'admin')
+            ? $roles->firstWhere('name', $this->role)
             : null;
-        $previewSame   = $this->shiftEnabled
-            ? ($this->shiftStart === $this->shiftEnd)
-            : false;
 
         return view('livewire.user-manager', [
             'users'             => $users,
             'roles'             => $roles,
+            'selectedRoleModel' => $selectedRoleModel,
             'defaultAdminEmail' => $this->defaultAdminEmail,
             'isDefaultAdmin'    => $this->isDefaultAdmin(),
             'totalUsers'        => User::count(),
             'totalAdmins'       => User::where('role', 'admin')->count(),
             'totalOthers'       => User::where('role', '!=', 'admin')->count(),
-            'previewIsDay'      => $previewIsDay,
-            'previewSame'       => $previewSame,
         ])->layout('layouts.app');
     }
 
     private function resetForm(): void
     {
-        $this->name         = $this->email = $this->password = '';
-        $this->role         = 'user';
-        $this->shiftEnabled = false;
-        $this->shiftStart   = '08:00';
-        $this->shiftEnd     = '18:00';
-        $this->editingId    = null;
-        $this->isEditing    = false;
+        $this->name           = $this->email = $this->password = '';
+        $this->role           = 'user';
+        $this->editingId      = null;
+        $this->isEditing      = false;
         $this->editingIsAdmin = false;
     }
 }

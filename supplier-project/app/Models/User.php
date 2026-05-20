@@ -18,10 +18,11 @@ class User extends Authenticatable
         'password',
         'role',
         'profile_image',
-        'shift',        // legacy column (kept for backward compat)
-        'shift_type',   // 'day' | 'night' | null
-        'shift_start',  // HH:MM  e.g. "08:00"
-        'shift_end',    // HH:MM  e.g. "18:00"
+        // Legacy shift columns kept for backward compat — no longer used for login restriction
+        'shift',
+        'shift_type',
+        'shift_start',
+        'shift_end',
     ];
 
     protected $hidden = [
@@ -57,83 +58,62 @@ class User extends Authenticatable
     }
 
     /**
-     * Check whether this user is currently allowed to log in based on shift.
+     * Get the UserRole model for this user's role (if it exists).
+     */
+    public function userRole(): ?UserRole
+    {
+        if (!$this->role) return null;
+        return UserRole::where('name', $this->role)->first();
+    }
+
+    /**
+     * Check whether this user is allowed to log in right now.
      *
-     * Admins   → always allowed.
-     * No shift → always allowed.
-     * shift_type = 'day'   → allowed between shift_start and shift_end (same day, start < end).
-     * shift_type = 'night' → allowed between shift_start and shift_end (crosses midnight, start > end).
+     * Admins         → always allowed.
+     * No role found  → always allowed (fallback).
+     * Role found     → check role's login_start / login_end window.
      */
     public function isWithinShift(): bool
     {
         if ($this->isAdmin()) return true;
 
-        // Support both new (shift_type) and legacy (shift) columns
-        $type = $this->shift_type ?? $this->shift;
+        $roleModel = $this->userRole();
 
-        if (!$type || $type === 'none') return true;
+        if (!$roleModel) return true; // Unknown role → allow (safe fallback)
 
-        $now     = Carbon::now('Asia/Colombo');
-        $nowMins = $now->hour * 60 + $now->minute;
-
-        $startMins = $this->timeToMinutes($this->shift_start ?? '08:00');
-        $endMins   = $this->timeToMinutes($this->shift_end   ?? '18:00');
-
-        return $this->isInTimeRange($nowMins, $startMins, $endMins);
+        return $roleModel->isWithinLoginWindow();
     }
 
     /**
-     * True if $nowMins is within [$startMins, $endMins).
-     * Handles overnight ranges (e.g. 18:00 → 08:00).
-     */
-    private function isInTimeRange(int $nowMins, int $startMins, int $endMins): bool
-    {
-        if ($startMins < $endMins) {
-            // Same-day range: e.g. 08:00–18:00
-            return $nowMins >= $startMins && $nowMins < $endMins;
-        } else {
-            // Overnight range: e.g. 18:00–08:00
-            return $nowMins >= $startMins || $nowMins < $endMins;
-        }
-    }
-
-    private function timeToMinutes(string $time): int
-    {
-        [$h, $m] = array_map('intval', explode(':', $time));
-        return $h * 60 + $m;
-    }
-
-    /**
-     * Human-readable shift label shown in login error messages.
+     * Human-readable label shown in login error messages.
      */
     public function shiftLabel(): string
     {
-        $type  = $this->shift_type ?? $this->shift;
-        $start = $this->shift_start ?? '08:00';
-        $end   = $this->shift_end   ?? '18:00';
+        if ($this->isAdmin()) return 'Unrestricted (Admin)';
 
-        $fmt = fn(string $hhmm) => Carbon::createFromFormat('H:i', $hhmm)->format('g:i A');
+        $roleModel = $this->userRole();
 
-        return match ($type) {
-            'day'   => 'Day Shift ('   . $fmt($start) . ' – ' . $fmt($end) . ')',
-            'night' => 'Night Shift (' . $fmt($start) . ' – ' . $fmt($end) . ')',
-            default => 'No Restriction',
-        };
+        if (!$roleModel || !$roleModel->hasLoginRestriction()) {
+            return 'No Restriction';
+        }
+
+        return $roleModel->loginWindowLabel();
     }
 
     /**
-     * The shift type string stored in login_logs.shift.
-     * Admins and no-shift users → null.
-     * Others → 'day' or 'night'.
+     * The shift type string stored in login_logs.shift column.
+     * Kept for backward compat with LoginAnalytics.
+     * Now derived from role login window direction.
      */
     public function effectiveShiftType(): ?string
     {
         if ($this->isAdmin()) return null;
 
-        $type = $this->shift_type ?? $this->shift;
+        $roleModel = $this->userRole();
 
-        if (!$type || $type === 'none') return null;
+        if (!$roleModel || !$roleModel->hasLoginRestriction()) return null;
 
-        return $type; // 'day' or 'night'
+        // Day if start < end (same day), night if start >= end (overnight)
+        return ($roleModel->login_start < $roleModel->login_end) ? 'day' : 'night';
     }
 }
